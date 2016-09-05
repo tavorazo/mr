@@ -1,0 +1,5 @@
+1. instalar Go
+2. posicionar tu GOPATH
+3. go get revel
+4. revel new project
+5. go get github.com/goinggo/revel-mgo
