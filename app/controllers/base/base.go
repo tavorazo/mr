@@ -18,7 +18,7 @@ type Persona struct{
 
 func Busca() Persona{
 
-	session, err := mgo.Dial("localhost") //Host del servidor mongo
+	session, err := mgo.Dial("clinic.westus.cloudapp.azure.com") //Host del servidor mongo
 	if err != nil{
 		panic(err)
 	}
