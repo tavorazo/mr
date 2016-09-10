@@ -41,4 +41,3 @@ func (c App) Usuarios() revel.Result{
 
 	return c.RenderJson(data)
 }
-

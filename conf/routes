@@ -7,6 +7,8 @@ module:testrunner
 GET     /                                       App.Index
 GET 	/mensaje								App.Mensaje
 GET		/usuarios								App.Usuarios
+POST 	/beta/sign_up							Beta.SignUp
+
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
