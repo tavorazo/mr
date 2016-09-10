@@ -27,7 +27,7 @@ func NewUser(jsonStr []byte) (string, int) {
 	usr.Pass = EncryptToString(usr.Pass)	// Encripta la contraseña
 	usr.Confirm_pass = EncryptToString(usr.Confirm_pass)
 
-	session, err := mgo.Dial("clinic.westus.cloudapp.azure.com")
+	session, err := mgo.Dial("mongodb://mr-tooth:12qwaszx@ds044699.mlab.com:44699/mr")
 
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
@@ -35,7 +35,7 @@ func NewUser(jsonStr []byte) (string, int) {
     defer session.Close()
 
     session.SetMode(mgo.Monotonic, true)
-	con := session.DB("mr-tooth").C("usuarios")
+	con := session.DB("mr").C("usuarios")
 	err = con.Insert(usr)
 
 	if err != nil {
