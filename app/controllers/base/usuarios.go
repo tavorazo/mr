@@ -14,6 +14,12 @@ import (
 	"mr/app/models"
 )
 
+var (
+	HostDB 			string = "mongodb://mr-tooth:12qwaszx@ds044699.mlab.com:44699/mr"
+	NameDB 			string = "mr"
+	CollectionDB 	string = "usuarios"
+)
+
 func NewUser(jsonStr []byte) (string, int) {
 
 	/*	Función que recibe el valor en JSON y lo inserta en la Base de datos
@@ -31,7 +37,7 @@ func NewUser(jsonStr []byte) (string, int) {
 	usr.Pass = EncryptToString(usr.Pass)	// Encripta la contraseña
 	usr.Confirm_pass = EncryptToString(usr.Confirm_pass)
 
-	session, err := mgo.Dial("mongodb://mr-tooth:12qwaszx@ds044699.mlab.com:44699/mr")
+	session, err := mgo.Dial(HostDB)
 
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
@@ -39,7 +45,7 @@ func NewUser(jsonStr []byte) (string, int) {
     defer session.Close()
 
     session.SetMode(mgo.Monotonic, true)
-	con := session.DB("mr").C("usuarios")
+	con := session.DB(NameDB).C(CollectionDB)
 	err = con.Insert(usr)
 
 	if err != nil {
@@ -57,7 +63,7 @@ func Auth(jsonStr []byte) (string, int) {
 	logValues := &models.Usuario{}  // Llama al modelo de usuario para almacenar los valores recibidos en JSON
     json.Unmarshal(jsonStr, logValues)
 
-	session, err := mgo.Dial("mongodb://mr-tooth:12qwaszx@ds044699.mlab.com:44699/mr")
+	session, err := mgo.Dial(HostDB)
 
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
@@ -65,7 +71,7 @@ func Auth(jsonStr []byte) (string, int) {
     defer session.Close()
 
     session.SetMode(mgo.Monotonic, true)
-    con := session.DB("mr").C("usuarios")
+    con := session.DB(NameDB).C(CollectionDB)
 
     result := models.Usuario{}
     pass := EncryptToString(logValues.Pass)
