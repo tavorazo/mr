@@ -24,3 +24,23 @@ func (c Beta) SignUp(json_vals string) revel.Result {
 	return c.RenderJson(data)
 
 }
+
+func (c Beta) Login() revel.Result{
+
+	data := make(map[string]interface{})
+
+	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status := base.Auth(body)
+
+	if(status != 200){
+		data["error"] = result
+	} else{
+		data["OK"] = "Ha ingresado correctamente"
+		data["token"] = result
+	}
+
+	c.Response.Status = status
+	data["status"] = status
+
+	return c.RenderJson(data)
+}
