@@ -45,6 +45,26 @@ func (c Beta) Login() revel.Result{
 	return c.RenderJson(data)
 }
 
+func (c Beta) RecoverAccount(mail string) revel.Result{
+
+	data := make(map[string]interface{})
+
+	// body, _ := ioutil.ReadAll(c.Request.Body)
+	result,status := base.MailRecover(mail)
+
+	if(status != 200){
+		data["error"] = result
+	} else{
+		data["OK"] = result
+	}
+
+	c.Response.Status = status
+	data["status"] = status
+
+	return c.RenderJson(data)
+
+}
+
 func (c Beta) UpdatePass(nickname string) revel.Result{
 
 	/* Recibe como parámetro URL el usuario al que se actualizará la contraseña 

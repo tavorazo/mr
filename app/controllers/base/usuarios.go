@@ -124,6 +124,29 @@ func Auth(jsonStr []byte) (string, int) {
 
 }
 
+func MailRecover(mail string) (string, int){
+
+	session, err := mgo.Dial(HostDB)
+
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+    session.SetMode(mgo.Monotonic, true)
+    con := session.DB(NameDB).C(CollectionDB)
+
+    result := models.Usuario{}
+    err = con.Find(bson.M{"mail": mail}).One(&result) // Busca un nombre en la colección y lo almacena en result
+
+	if err != nil {
+		return "Usuario no encontrado",401
+	}
+
+	return "Se ha enviado un correo al usuario: "+result.Nickname+", correo: " +result.Mail, 200 
+
+}
+
 func CreateToken(iss string, name string) string{
 
 	/* 	Función que recopila la información del usuario y lo codifica para formar el token del tipo JWT.
