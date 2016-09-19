@@ -44,3 +44,20 @@ func (c Beta) Login() revel.Result{
 
 	return c.RenderJson(data)
 }
+
+func (c Beta) UpdatePass(nickname string) revel.Result{
+
+	/* Recibe como parámetro URL el usuario al que se actualizará la contraseña 
+	   y de Body (ocultos) el JSON con los valores de pass y confirm_pass */
+
+	data := make(map[string]interface{})
+
+	body, _ := ioutil.ReadAll(c.Request.Body)
+	result,status := base.NewPass(nickname, body)
+
+	c.Response.Status = status
+	data["mensaje"] = result
+	data["status"] = status
+
+	return c.RenderJson(data)
+}

@@ -55,6 +55,43 @@ func NewUser(jsonStr []byte) (string, int) {
 	return "Nuevo usuario creado", 201
 }
 
+func NewPass(nickname string,jsonStr []byte) (string, int) {
+
+	/* Función que recibe los valores de nickname como string, y como JSON de nuevo pass y confirm_pass 
+		para actualizarlos en la BD */
+
+	passValues := &models.Usuario{}
+	json.Unmarshal(jsonStr, passValues)
+
+	if(passValues.Pass != passValues.Confirm_pass) {
+		return "Las contraseñas no coinciden", 400
+	}
+
+	passValues.Pass = EncryptToString(passValues.Pass)	// Encripta la contraseña
+	passValues.Confirm_pass = EncryptToString(passValues.Confirm_pass)
+
+	session, err := mgo.Dial(HostDB)
+
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+    session.SetMode(mgo.Monotonic, true)
+    con := session.DB(NameDB).C(CollectionDB)
+
+    colQuerier := bson.M{"nickname": nickname}  // Busca el documento por nickname
+	change := bson.M{"$set": bson.M{"pass": passValues.Pass, "confirm_pass": passValues.Confirm_pass}}
+	err = con.Update(colQuerier, change)
+
+	if err != nil {		
+		return "Usuario no encontrado", 401
+	}
+
+	return "Password actualizada", 200
+
+}
+
 func Auth(jsonStr []byte) (string, int) {
 
 	/*	Función que recibe el los valores en JSON de autenticación y el número del intento
