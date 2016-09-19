@@ -17,10 +17,15 @@ func (c Beta) SignUp(json_vals string) revel.Result {
 	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
 	result,status := base.NewUser(body)
 
-	c.Response.Status = status
-	data["mensaje"] = result
+	
+	if(status != 201){
+		data["error"] = result
+	} else{
+		data["OK"] = result
+	}
 	data["status"] = status
 
+	c.Response.Status = status
 	return c.RenderJson(data)
 
 }
@@ -75,8 +80,13 @@ func (c Beta) UpdatePass(nickname string) revel.Result{
 	body, _ := ioutil.ReadAll(c.Request.Body)
 	result,status := base.NewPass(nickname, body)
 
+	if(status != 200){
+		data["error"] = result
+	} else{
+		data["OK"] = result
+	}
+
 	c.Response.Status = status
-	data["mensaje"] = result
 	data["status"] = status
 
 	return c.RenderJson(data)
