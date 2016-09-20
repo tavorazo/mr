@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"mr/app/models"
+	"mr/app/controllers/mailing"
 )
 
 var (
@@ -126,6 +127,9 @@ func Auth(jsonStr []byte) (string, int) {
 
 func MailRecover(mail string) (string, int){
 
+	/* Función que recibe el correo al que se enviará el link de recuperación de pass por medio de parámetro URL 
+		Verifica que el correo exista y devuelve un mensaje en caso de que el correo haya sido enviado o de error en caso contrario */
+
 	session, err := mgo.Dial(HostDB)
 
 	if err != nil {
@@ -142,6 +146,8 @@ func MailRecover(mail string) (string, int){
 	if err != nil {
 		return "Usuario no encontrado",401
 	}
+
+	mailing.PassRecoverMail(result.Mail)  // Llama a la función que envía el correo con el link de recuperación
 
 	return "Se ha enviado un correo al usuario: "+result.Nickname+", correo: " +result.Mail, 200 
 
