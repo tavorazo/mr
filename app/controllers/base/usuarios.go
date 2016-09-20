@@ -161,7 +161,7 @@ func CreateToken(iss string, name string) string{
 	header := []byte(`{"typ": "JWT", "alg": "HS256"}`)
 
 	exp := int(time.Now().Unix()) + 86400    // Tiempo de expiración del token más 1 día
-	payload := []byte(`{"iss": "`+iss+`", "exp": `+strconv.Itoa(exp)+`, "name": "`+name+`"}`)
+	payload := []byte(`{"iss": "`+iss+`", "exp": "`+strconv.Itoa(exp)+`", "name": "`+name+`"}`)
 
 	signature := base64.StdEncoding.EncodeToString(header)+"."+base64.StdEncoding.EncodeToString(payload)
 
