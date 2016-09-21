@@ -1,12 +1,14 @@
 package base
 
 import(
+	"encoding/json"
 	"crypto/md5"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/base64"
 	"strconv"
 	"time"
+	"strings"
 )
 
 func CreateToken(iss string, name string) string{
@@ -24,6 +26,28 @@ func CreateToken(iss string, name string) string{
 	// Forma un token del tipo [header].[payload].[signature]   								
 	token := base64.StdEncoding.EncodeToString(header)+"."+base64.StdEncoding.EncodeToString(payload)+"."+EncryptToStringSha256(signature)
 	return token
+}
+
+func CheckToken(token string) bool {
+
+	/* Función que verifica la expliración del token y retorna true si es válido o false en caso contrario */
+
+	tokSplit := strings.Split(token, ".")
+	payloadJson, _ := base64.StdEncoding.DecodeString(tokSplit[1])
+
+	type Payload struct {
+		Iss, Name, Exp string
+	}
+
+	pl := Payload{}
+	json.Unmarshal(payloadJson, &pl)
+	exp, _ := strconv.Atoi(pl.Exp) // Convierte string a int
+	if exp < int(time.Now().Unix()) {  
+		return false
+	} else {
+		return true
+	}
+	
 }
 
 // Funciónes que reciben un texto, lo codifica y lo devuelve como un string
