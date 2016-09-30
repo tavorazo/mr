@@ -174,3 +174,30 @@ func UserExists(userBy, textUser string) bool {
     	return true
     }
 }
+
+func UserEdit(nickname string,jsonStr []byte) (string, int){
+
+	editValues := &models.Usuario{}
+	json.Unmarshal(jsonStr, editValues)
+
+	session, err := mgo.Dial(HostDB)
+
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+    session.SetMode(mgo.Monotonic, true)
+    con := session.DB(NameDB).C(CollectionDB)
+
+    colQuerier := bson.M{"nickname": nickname}  // Busca el documento por nickname
+	change := bson.M{"$set": bson.M{"firstname": editValues.Firstname, "confirm_pass": editValues.Lastname, "age": editValues.Age, "country":editValues.Country,"state": editValues.State, "address": editValues.Address, "tel": editValues.Tel}}
+	err = con.Update(colQuerier, change)
+
+	if err != nil {		
+		return "Usuario no encontrado", 401
+	}
+
+	return "Datos de usuario almacenados", 200
+
+}
