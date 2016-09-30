@@ -27,6 +27,10 @@ func NewUser(jsonStr []byte) (string, int) {
 		return "Las contraseñas no coinciden", 400
 	} else if(usr.Mail != usr.Confirm_mail) {
 		return "Los correos no coinciden", 400
+	} else if UserExists("mail",usr.Mail) == true {
+		return "Correo ya existente en la base de datos", 400
+	} else if UserExists("nickname",usr.Nickname) == true {
+		return "Nombre de usuario ya existente en la base de datos", 400
 	}
 
 	usr.Pass = EncryptToString(usr.Pass)	// Encripta la contraseña
@@ -145,4 +149,28 @@ func MailRecover(mail string) (string, int){
 
 	return "Se ha enviado un correo al usuario: "+result.Nickname+", correo: " +result.Mail, 200 
 
+}
+
+func UserExists(userBy, textUser string) bool {
+
+	/* Función que verifica si existe algún valor en la base de datos recibe la opción a buscar (userBy) y el valor a buscar(textUser)
+		Retorna true en caso de encontrarlo o false cuando no se encuentra*/
+
+	session, err := mgo.Dial(HostDB)
+	if err != nil {
+		return false
+    }
+    defer session.Close()
+
+    session.SetMode(mgo.Monotonic, true)
+    con := session.DB(NameDB).C(CollectionDB)
+
+    result := models.Usuario{}
+    err = con.Find(bson.M{userBy:textUser}).One(&result) // Busca un nombre en la colección y lo almacena en result
+
+    if err != nil{
+    	return false
+    } else{
+    	return true
+    }
 }
