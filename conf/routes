@@ -7,12 +7,19 @@ module:testrunner
 GET     /                                       App.Index
 GET 	/mensaje								App.Mensaje
 GET		/usuarios								App.Usuarios
+
+# Usuarios
+
 POST 	/beta/sign_up							Beta.SignUp
 GET		/beta/login								Beta.Login
 PUT		/beta/update_pass/:nickname				Beta.UpdatePass
 GET		/beta/recover_account/:mail				Beta.RecoverAccount
 PUT		/beta/:nickname/account/edit			Beta.UpdateAccount
-POST 	/beta/:nickname/almacen/add_product		Beta.AddProduct
+
+# Inventario
+
+POST 	/beta/:nickname/almacen/add_product					Beta.AddProduct
+PUT		/beta/:nickname/almacen/:product_id/edit_amount 	Beta.EditAmount
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

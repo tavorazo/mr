@@ -67,3 +67,36 @@ func ProductExists(serial string) bool {
     	return true
     }
 }
+
+func UpdateProductAmount(nickname string, n_serial string, jsonStr []byte) (string, int) {
+
+	/* Función que recibe los valores de nickname como string, y como JSON del producto nuevo que se insertará en la BD */
+
+	productVals := &models.Product{}
+	json.Unmarshal(jsonStr, productVals)
+
+	// if ProductExists(productVals.N_serial) == false {
+	// 	return "El número de serial del producto no existe",400
+	// }
+
+	session, err := mgo.Dial(HostDB)
+
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+    session.SetMode(mgo.Monotonic, true)
+    con := session.DB(NameDB).C(CollectionDB)
+
+    colQuerier := bson.M{"nickname": nickname, "products.n_serial": n_serial}  // Busca el documento por nickname
+	change := bson.M{"$set": bson.M{"products.$.quantity": productVals.Quantity} } // Inserta en el array de productos
+	err = con.Update(colQuerier, change)
+
+	if err != nil {		
+		return "Producto no encontrado", 401
+	}
+
+	return "Cantidad de productos actualizada", 200
+
+}
