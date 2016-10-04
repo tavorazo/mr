@@ -175,7 +175,7 @@ func UserExists(userBy, textUser string) bool {
     }
 }
 
-func UserEdit(nickname string,jsonStr []byte) (string, int){
+func UserEdit(account_id string,jsonStr []byte) (string, int){
 
 	editValues := &models.Usuario{}
 	json.Unmarshal(jsonStr, editValues)
@@ -190,8 +190,8 @@ func UserEdit(nickname string,jsonStr []byte) (string, int){
     session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
-    colQuerier := bson.M{"nickname": nickname}  // Busca el documento por nickname
-	change := bson.M{"$set": bson.M{"firstname": editValues.Firstname, "confirm_pass": editValues.Lastname, "age": editValues.Age, "country":editValues.Country,"state": editValues.State, "address": editValues.Address, "tel": editValues.Tel}}
+    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ACCOUNT_ID
+	change := bson.M{"$set": bson.M{"firstname": editValues.Firstname, "lastname": editValues.Lastname, "confirm_pass": editValues.Lastname, "age": editValues.Age, "country":editValues.Country,"state": editValues.State, "address": editValues.Address, "tel": editValues.Tel}}
 	err = con.Update(colQuerier, change)
 
 	if err != nil {		

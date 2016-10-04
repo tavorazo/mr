@@ -14,7 +14,7 @@ POST 	/beta/sign_up							Beta.SignUp
 GET		/beta/login								Beta.Login
 PUT		/beta/update_pass/:account_id			Beta.UpdatePass
 GET		/beta/recover_account/:mail				Beta.RecoverAccount
-PUT		/beta/:nickname/account/edit			Beta.UpdateAccount
+PUT		/beta/:account_id/account/edit			Beta.UpdateAccount
 
 # Inventario
 
