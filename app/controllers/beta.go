@@ -111,11 +111,11 @@ func (c Beta) UpdateAccount(account_id string) revel.Result{
 	return c.RenderJson(data)
 }
 
-func (c Beta) AddProduct(nickname string) revel.Result{
+func (c Beta) AddProduct(account_id string) revel.Result{
 	data := make(map[string]interface{})
 
 	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	result,status := base.NewProduct(nickname, body)
+	result,status := base.NewProduct(account_id, body)
 
 	if(status != 200){
 		data["error"] = result

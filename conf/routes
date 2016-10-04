@@ -18,7 +18,7 @@ PUT		/beta/:account_id/account/edit			Beta.UpdateAccount
 
 # Inventario
 
-POST 	/beta/:nickname/almacen/add_product					Beta.AddProduct
+POST 	/beta/:account_id/almacen/add_product				Beta.AddProduct
 PUT		/beta/:nickname/almacen/:product_id/edit_amount 	Beta.EditAmount
 
 # Ignore favicon requests

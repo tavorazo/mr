@@ -8,7 +8,7 @@ import (
 	"mr/app/models"
 )
 
-func NewProduct(nickname string, jsonStr []byte) (string, int) {
+func NewProduct(account_id string, jsonStr []byte) (string, int) {
 
 	/* Función que recibe los valores de nickname como string, y como JSON del producto nuevo que se insertará en la BD */
 
@@ -29,7 +29,7 @@ func NewProduct(nickname string, jsonStr []byte) (string, int) {
     session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
-    colQuerier := bson.M{"nickname": nickname}  // Busca el documento por nickname
+    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por nickname
 	change := bson.M{"$push": bson.M{"products": productVals} } // Inserta en el array de productos
 	err = con.Update(colQuerier, change)
 
