@@ -14,7 +14,7 @@ import(
 func CreateToken(iss string, name string) string{
 
 	/* 	Función que recopila la información del usuario y lo codifica para formar el token del tipo JWT.
-		Recibe el nombre de usuario (nickname) y el nombre completo del usuario para codificarlos dentro del token */
+		Recibe el ACCOUNT_ID y el nombre completo del usuario para codificarlos dentro del token */
 
 	header := []byte(`{"alg":"HS256","typ":"JWT"}`)
 

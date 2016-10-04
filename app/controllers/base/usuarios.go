@@ -54,9 +54,9 @@ func NewUser(jsonStr []byte) (string, int) {
 	return "Nuevo usuario creado", 201
 }
 
-func NewPass(nickname string,jsonStr []byte) (string, int) {
+func NewPass(account_id string, jsonStr []byte) (string, int) {
 
-	/* Función que recibe los valores de nickname como string, y como JSON de nuevo pass y confirm_pass 
+	/* Función que recibe los valores de ID_ACCOUNT como string, y como JSON de nuevo pass y confirm_pass 
 		para actualizarlos en la BD */
 
 	passValues := &models.Usuario{}
@@ -79,7 +79,7 @@ func NewPass(nickname string,jsonStr []byte) (string, int) {
     session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
-    colQuerier := bson.M{"nickname": nickname}  // Busca el documento por nickname
+    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ID_ACCOUNT
 	change := bson.M{"$set": bson.M{"pass": passValues.Pass, "confirm_pass": passValues.Confirm_pass}}
 	err = con.Update(colQuerier, change)
 
@@ -117,7 +117,7 @@ func Auth(jsonStr []byte) (string, int) {
 		return "Usuario no encontrado",401
 	}
 
-    token := CreateToken(result.Nickname,result.Firstname+" "+result.Lastname)
+    token := CreateToken(bson.ObjectId(result.Id).Hex(), result.Firstname+" "+result.Lastname)
 
 	return token,200
 

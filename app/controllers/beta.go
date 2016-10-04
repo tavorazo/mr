@@ -70,7 +70,7 @@ func (c Beta) RecoverAccount(mail string) revel.Result{
 
 }
 
-func (c Beta) UpdatePass(nickname string) revel.Result{
+func (c Beta) UpdatePass(account_id string) revel.Result{
 
 	/* Recibe como parámetro URL el usuario al que se actualizará la contraseña 
 	   y de Body (ocultos) el JSON con los valores de pass y confirm_pass */
@@ -78,7 +78,7 @@ func (c Beta) UpdatePass(nickname string) revel.Result{
 	data := make(map[string]interface{})
 
 	body, _ := ioutil.ReadAll(c.Request.Body)
-	result,status := base.NewPass(nickname, body)
+	result,status := base.NewPass(account_id, body)
 
 	if(status != 200){
 		data["error"] = result
