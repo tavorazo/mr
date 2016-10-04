@@ -191,7 +191,7 @@ func UserEdit(account_id string,jsonStr []byte) (string, int){
     con := session.DB(NameDB).C(CollectionDB)
 
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ACCOUNT_ID
-	change := bson.M{"$set": bson.M{"firstname": editValues.Firstname, "lastname": editValues.Lastname, "confirm_pass": editValues.Lastname, "age": editValues.Age, "country":editValues.Country,"state": editValues.State, "address": editValues.Address, "tel": editValues.Tel}}
+	change := bson.M{"$set": bson.M{"firstname": editValues.Firstname, "lastname": editValues.Lastname, "confirm_pass": editValues.Confirm_pass, "age": editValues.Age, "country":editValues.Country,"state": editValues.State, "address": editValues.Address, "tel": editValues.Tel}}
 	err = con.Update(colQuerier, change)
 
 	if err != nil {		
