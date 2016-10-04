@@ -15,7 +15,7 @@ func NewProduct(account_id string, jsonStr []byte) (string, int) {
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
 
-	if ProductExists(productVals.N_serial) == true {
+	if ProductExists(productVals.N_serial , account_id) == true {
 		return "El número de serial del producto ya existe",400
 	}
 
@@ -41,7 +41,7 @@ func NewProduct(account_id string, jsonStr []byte) (string, int) {
 
 }
 
-func ProductExists(serial string) bool {
+func ProductExists(serial, account_id string) bool {
 
 	/* Función que verifica si existe el número de serial del producto en la base de datos */
 
@@ -59,7 +59,7 @@ func ProductExists(serial string) bool {
     }
 
     result := Result{}
-    err = con.Find(bson.M{"products": bson.M{ "$elemMatch": bson.M{"n_serial": serial } } }).Select(bson.M{"products.n_serial": 1, "_id": 0}).One(&result)
+    err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_seria": serial}).Select(bson.M{"products.n_serial": 1, "_id": 0}).One(&result)
 
     if err != nil{
     	return false
@@ -68,16 +68,12 @@ func ProductExists(serial string) bool {
     }
 }
 
-func UpdateProductAmount(nickname string, n_serial string, jsonStr []byte) (string, int) {
+func UpdateProductAmount(account_id, n_serial string, jsonStr []byte) (string, int) {
 
 	/* Función que recibe los valores de nickname como string, y como JSON del producto nuevo que se insertará en la BD */
 
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
-
-	// if ProductExists(productVals.N_serial) == false {
-	// 	return "El número de serial del producto no existe",400
-	// }
 
 	session, err := mgo.Dial(HostDB)
 
@@ -89,7 +85,7 @@ func UpdateProductAmount(nickname string, n_serial string, jsonStr []byte) (stri
     session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
-    colQuerier := bson.M{"nickname": nickname, "products.n_serial": n_serial}  // Busca el documento por nickname
+    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": n_serial}  // Busca el documento por nickname
 	change := bson.M{"$set": bson.M{"products.$.quantity": productVals.Quantity} } // Inserta en el array de productos
 	err = con.Update(colQuerier, change)
 
