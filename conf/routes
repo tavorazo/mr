@@ -20,6 +20,7 @@ PUT		/beta/:account_id/account/edit			Beta.UpdateAccount
 
 POST 	/beta/:account_id/almacen/add_product				Beta.AddProduct
 PUT		/beta/:account_id/almacen/:product_id/edit_amount 	Beta.EditAmount
+PUT		/beta/:account_id/almacen/:product_id/edit 			Beta.EditProduct
 
 # Ignore favicon requests
 GET     /favicon.ico                            404

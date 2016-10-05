@@ -70,7 +70,7 @@ func ProductExists(serial, account_id string) bool {
 
 func UpdateProductAmount(account_id, n_serial string, jsonStr []byte) (string, int) {
 
-	/* Función que recibe los valores de nickname como string, y como JSON del producto nuevo que se insertará en la BD */
+	/* Función que recibe los valores de ACCOUNT_ID como string, y como JSON la nueva cantidad del producto con n_serial */
 
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
@@ -85,7 +85,7 @@ func UpdateProductAmount(account_id, n_serial string, jsonStr []byte) (string, i
     session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
-    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": n_serial}  // Busca el documento por nickname
+    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": n_serial}  // Busca el documento por ACCOUNT_ID
 	change := bson.M{"$set": bson.M{"products.$.quantity": productVals.Quantity} } // Inserta en el array de productos
 	err = con.Update(colQuerier, change)
 
@@ -94,5 +94,36 @@ func UpdateProductAmount(account_id, n_serial string, jsonStr []byte) (string, i
 	}
 
 	return "Cantidad de productos actualizada", 200
+
+}
+
+func UpdateProduct(account_id, n_serial string, jsonStr []byte) (string, int){
+
+	productVals := &models.Product{}
+	json.Unmarshal(jsonStr, productVals)
+
+	if ProductExists(productVals.N_serial , account_id) == true {
+		return "El número de serial del producto ya existe",400
+	}
+
+	session, err := mgo.Dial(HostDB)
+
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+    session.SetMode(mgo.Monotonic, true)
+    con := session.DB(NameDB).C(CollectionDB)
+
+    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": n_serial}  // Busca el documento por ACCOUNT_ID
+	change := bson.M{"$set": bson.M{"products.$": productVals} } // Inserta en el array de productos
+	err = con.Update(colQuerier, change)
+
+	if err != nil {		
+		return "Producto no encontrado", 401
+	}
+
+	return "Datos de producto actualizados", 200
 
 }
