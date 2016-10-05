@@ -127,3 +127,27 @@ func UpdateProduct(account_id, n_serial string, jsonStr []byte) (string, int){
 	return "Datos de producto actualizados", 200
 
 }
+
+func EraseProduct(account_id, n_serial string) (string, int){
+
+	session, err := mgo.Dial(HostDB)
+
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+    session.SetMode(mgo.Monotonic, true)
+    con := session.DB(NameDB).C(CollectionDB)
+
+    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ACCOUNT_ID
+	change := bson.M{"$pull": bson.M{"products": bson.M{"n_serial":n_serial } } } // Elimina en el array de productos en base al número de serial
+	err = con.Update(colQuerier, change)
+
+	if err != nil {		
+		return "Producto no encontrado", 401
+	}
+
+	return "Producto eliminado", 200
+
+}

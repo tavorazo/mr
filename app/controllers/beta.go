@@ -166,3 +166,22 @@ func (c Beta) EditProduct(account_id, product_id string) revel.Result {
 	return c.RenderJson(data)
 
 }
+
+func (c Beta) DeleteProduct(account_id, product_id string) revel.Result {
+
+	data := make(map[string]interface{})
+
+	result,status := base.EraseProduct(account_id, product_id)
+
+	if(status != 200){
+		data["error"] = result
+	} else{
+		data["OK"] = result
+	}
+
+	c.Response.Status = status
+	data["status"] = status
+
+	return c.RenderJson(data)
+
+}
