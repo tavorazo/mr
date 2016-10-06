@@ -59,7 +59,7 @@ func ProductExists(serial, account_id string) bool {
     }
 
     result := Result{}
-    err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_seria": serial}).Select(bson.M{"products.n_serial": 1, "_id": 0}).One(&result)
+    err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": serial}).Select(bson.M{"products.n_serial": 1, "_id": 0}).One(&result)
 
     if err != nil{
     	return false
