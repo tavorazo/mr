@@ -117,7 +117,7 @@ func (c Beta) AddProduct(account_id string) revel.Result{
 	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
 	result,status := base.NewProduct(account_id, body)
 
-	if(status != 200){
+	if(status != 201){
 		data["error"] = result
 	} else{
 		data["OK"] = result

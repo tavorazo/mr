@@ -37,7 +37,7 @@ func NewProduct(account_id string, jsonStr []byte) (string, int) {
 		return "Usuario no encontrado", 401
 	}
 
-	return "Producto agregado en el almacén", 200
+	return "Producto agregado en el almacén", 201
 
 }
 
