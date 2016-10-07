@@ -9,12 +9,6 @@ import (
 	"mr/app/controllers/mailing"
 )
 
-var (
-	HostDB 			string = "mongodb://mr-tooth:12qwaszx@ds044699.mlab.com:44699/mr"
-	NameDB 			string = "mr"
-	CollectionDB 	string = "usuarios"
-)
-
 func NewUser(jsonStr []byte) (string, int) {
 
 	/*	Función que recibe el valor en JSON y lo inserta en la Base de datos
