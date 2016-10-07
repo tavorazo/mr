@@ -90,7 +90,7 @@ func UpdateProductAmount(account_id, n_serial string, jsonStr []byte) (string, i
 	err = con.Update(colQuerier, change)
 
 	if err != nil {		
-		return "Producto no encontrado", 401
+		return "Producto no encontrado", 400
 	}
 
 	return "Cantidad de productos actualizada", 200
@@ -121,7 +121,7 @@ func UpdateProduct(account_id, n_serial string, jsonStr []byte) (string, int){
 	err = con.Update(colQuerier, change)
 
 	if err != nil {		
-		return "Producto no encontrado", 401
+		return "Producto no encontrado", 400
 	}
 
 	return "Datos de producto actualizados", 200
@@ -145,7 +145,7 @@ func EraseProduct(account_id, n_serial string) (string, int){
 	err = con.Update(colQuerier, change)
 
 	if err != nil {		
-		return "Producto no encontrado", 401
+		return "Producto no encontrado", 400
 	}
 
 	return "Producto eliminado", 200
