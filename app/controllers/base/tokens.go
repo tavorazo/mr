@@ -1,6 +1,8 @@
 package base
 
 import(
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
 	"crypto/md5"
 	"crypto/sha256"
@@ -9,6 +11,8 @@ import(
 	"strconv"
 	"time"
 	"strings"
+	"mr/app/models"
+	"fmt"
 )
 
 func CreateToken(iss string, name string) string{
@@ -33,7 +37,16 @@ func CheckToken(token string) bool {
 	/* Función que verifica la expliración del token y retorna true si es válido o false en caso contrario */
 
 	tokSplit := strings.Split(token, ".")
-	payloadJson, _ := base64.StdEncoding.DecodeString(tokSplit[1]) // Divide el token y extrae la parte de payload
+	fmt.Println(len(tokSplit))
+	if (len(tokSplit) != 3) {
+		return false
+	}
+
+	payloadJson, err := base64.StdEncoding.DecodeString(tokSplit[1]) // Divide el token y extrae la parte de payload
+
+	if err != nil{
+		return false
+	}
 
 	type Payload struct {
 		Iss  	string   	`json:"iss"`
@@ -43,9 +56,23 @@ func CheckToken(token string) bool {
 
 	pl := Payload{}
 	json.Unmarshal(payloadJson, &pl)
-	// exp, _ := strconv.Atoi(pl.Exp) // Convierte string a int
 
-	if pl.Exp < int(time.Now().Unix()) {  
+	session, err := mgo.Dial(HostDB)
+
+	if err != nil {
+		return false
+    }
+    defer session.Close()
+
+    session.SetMode(mgo.Monotonic, true)
+    con := session.DB(NameDB).C(CollectionDB)
+
+    result := models.Usuario{}
+    err = con.Find(bson.M{"_id":bson.ObjectIdHex(pl.Iss)}).One(&result)
+
+    if err != nil {  //Si no se encuentra el usuario en la base de datos retorna falso
+    	return false
+    } else if pl.Exp < int(time.Now().Unix()) {  
 		return false
 	} else {
 		return true
