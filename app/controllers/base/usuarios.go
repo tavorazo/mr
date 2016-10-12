@@ -169,7 +169,11 @@ func UserExists(userBy, textUser string) bool {
     }
 }
 
-func UserEdit(account_id string,jsonStr []byte) (string, int){
+func UserEdit(account_id, token string,jsonStr []byte) (string, int){
+
+	if CheckToken(token) == false {
+		return "token no válido", 403
+	}
 
 	editValues := &models.Usuario{}
 	json.Unmarshal(jsonStr, editValues)
