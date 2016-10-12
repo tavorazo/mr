@@ -97,7 +97,7 @@ func (c Beta) UpdateAccount(account_id string) revel.Result{
 	data := make(map[string]interface{})
 
 	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	token := c.Request.Header.Get("token")
+	token := c.Request.Header.Get("token") 		// Lee token desde header
 
 	result,status := base.UserEdit(account_id, token, body)
 	
@@ -114,10 +114,13 @@ func (c Beta) UpdateAccount(account_id string) revel.Result{
 }
 
 func (c Beta) AddProduct(account_id string) revel.Result{
+
 	data := make(map[string]interface{})
 
 	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	result,status := base.NewProduct(account_id, body)
+	token := c.Request.Header.Get("token")		// Lee token desde header
+
+	result,status := base.NewProduct(account_id, token, body)
 
 	if(status != 201){
 		data["error"] = result
@@ -135,7 +138,9 @@ func (c Beta) EditAmount(account_id, product_id string) revel.Result {
 	data := make(map[string]interface{})
 
 	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	result,status := base.UpdateProductAmount(account_id, product_id, body)
+	token := c.Request.Header.Get("token")		// Lee token desde header
+
+	result,status := base.UpdateProductAmount(account_id, product_id, token, body)
 
 	if(status != 200){
 		data["error"] = result
@@ -154,7 +159,9 @@ func (c Beta) EditProduct(account_id, product_id string) revel.Result {
 	data := make(map[string]interface{})
 
 	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	result,status := base.UpdateProduct(account_id, product_id, body)
+	token := c.Request.Header.Get("token")		// Lee token desde header
+
+	result,status := base.UpdateProduct(account_id, product_id, token, body)
 
 	if(status != 200){
 		data["error"] = result
@@ -173,7 +180,9 @@ func (c Beta) DeleteProduct(account_id, product_id string) revel.Result {
 
 	data := make(map[string]interface{})
 
-	result,status := base.EraseProduct(account_id, product_id)
+	token := c.Request.Header.Get("token")		// Lee token desde header
+
+	result,status := base.EraseProduct(account_id, product_id, token)
 
 	if(status != 200){
 		data["error"] = result

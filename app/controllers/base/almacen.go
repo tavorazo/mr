@@ -8,9 +8,13 @@ import (
 	"mr/app/models"
 )
 
-func NewProduct(account_id string, jsonStr []byte) (string, int) {
+func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 
 	/* Función que recibe los valores de nickname como string, y como JSON del producto nuevo que se insertará en la BD */
+
+	if CheckToken(token) == false {
+		return "token no válido", 403   // Verifica que sea un token válido
+	}
 
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
@@ -68,9 +72,13 @@ func ProductExists(serial, account_id string) bool {
     }
 }
 
-func UpdateProductAmount(account_id, n_serial string, jsonStr []byte) (string, int) {
+func UpdateProductAmount(account_id, n_serial string, token string, jsonStr []byte) (string, int) {
 
 	/* Función que recibe los valores de ACCOUNT_ID como string, y como JSON la nueva cantidad del producto con n_serial */
+
+	if CheckToken(token) == false {
+		return "token no válido", 403   // Verifica que sea un token válido
+	}
 
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
@@ -97,7 +105,14 @@ func UpdateProductAmount(account_id, n_serial string, jsonStr []byte) (string, i
 
 }
 
-func UpdateProduct(account_id, n_serial string, jsonStr []byte) (string, int){
+func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (string, int){
+
+	/* Función que actualiza un producto para un usuario en la base de datos 
+		Se reciben el id de usuario y el número de serie unico del producto */
+
+	if CheckToken(token) == false {
+		return "token no válido", 403   // Verifica que sea un token válido
+	}
 
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
@@ -128,7 +143,14 @@ func UpdateProduct(account_id, n_serial string, jsonStr []byte) (string, int){
 
 }
 
-func EraseProduct(account_id, n_serial string) (string, int){
+func EraseProduct(account_id, n_serial string, token string) (string, int){
+
+	/* Función que elmina un producto del usuario recibido de la base de datos
+		se recibe el id de usuario y el numero de serie unico del producto */
+
+	if CheckToken(token) == false {
+		return "token no válido", 403   // Verifica que sea un token válido
+	}
 
 	session, err := mgo.Dial(HostDB)
 
