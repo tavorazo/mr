@@ -12,7 +12,6 @@ import(
 	"time"
 	"strings"
 	"mr/app/models"
-	"fmt"
 )
 
 func CreateToken(iss string, name string) string{
@@ -37,7 +36,6 @@ func CheckToken(token string) bool {
 	/* Función que verifica la expliración del token y retorna true si es válido o false en caso contrario */
 
 	tokSplit := strings.Split(token, ".")
-	fmt.Println(len(tokSplit))
 	if (len(tokSplit) != 3) {
 		return false
 	}
