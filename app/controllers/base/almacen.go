@@ -14,6 +14,8 @@ func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 
 	if CheckToken(token) == false {
 		return "token no válido", 403   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
 	productVals := &models.Product{}
@@ -78,6 +80,8 @@ func UpdateProductAmount(account_id, n_serial string, token string, jsonStr []by
 
 	if CheckToken(token) == false {
 		return "token no válido", 403   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
 	productVals := &models.Product{}
@@ -112,6 +116,8 @@ func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (s
 
 	if CheckToken(token) == false {
 		return "token no válido", 403   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
 	productVals := &models.Product{}
@@ -150,6 +156,8 @@ func EraseProduct(account_id, n_serial string, token string) (string, int){
 
 	if CheckToken(token) == false {
 		return "token no válido", 403   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
 	session, err := mgo.Dial(HostDB)

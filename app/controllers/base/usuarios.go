@@ -56,6 +56,10 @@ func NewPass(account_id string, jsonStr []byte) (string, int) {
 	passValues := &models.Usuario{}
 	json.Unmarshal(jsonStr, passValues)
 
+	if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
+	}
+
 	if(passValues.Pass != passValues.Confirm_pass) {
 		return "Las contraseñas no coinciden", 400
 	}
@@ -184,6 +188,8 @@ func UserEdit(account_id, token string,jsonStr []byte) (string, int){
 
 	if CheckToken(token) == false {
 		return "token no válido", 403
+	} else if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
 	editValues := &models.Usuario{}
