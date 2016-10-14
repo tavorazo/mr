@@ -159,8 +159,19 @@ func UserExists(userBy, textUser string) bool {
     session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
+    findBson := bson.M{userBy:textUser}
+    if userBy == "_id" {
+    	if len(textUser)  != 24 {
+    		return false
+    	} else {
+    		findBson = bson.M{userBy: bson.ObjectIdHex(textUser)}
+    	}
+    } else{
+    	findBson = bson.M{userBy:textUser}
+    }
+    
     result := models.Usuario{}
-    err = con.Find(bson.M{userBy:textUser}).One(&result) // Busca un nombre en la colección y lo almacena en result
+    err = con.Find(findBson).One(&result) // Busca un nombre en la colección y lo almacena en result
 
     if err != nil{
     	return false
