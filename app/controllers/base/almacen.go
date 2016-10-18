@@ -223,15 +223,19 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
     }
 
 	data["producto"] = result.Products
-	msj := ""
+	productsFind := len(result.Products) // Cantidad de productos encontrados
 
-	if len(result.Products) == 0 {
-		msj = "No hay productos en el inventario"  // Retorna el mensaje de acuerdo a la cantidad de productos encontrada
-	} else if len(result.Products) == 1 {
-		msj = "Producto encontrado"
+	if productsFind == 0 {
+		if all == true {
+			return "No hay productos en el inventario", 200, data["producto"]
+		} else {
+			return "Producto no encontrado", 400, data["producto"]
+		}
+	} else if productsFind == 1 {
+		return "Producto encontrado", 200, data["producto"]
 	} else {
-		msj = "Productos encontrados"
+		return "Productos encontrados", 200, data["producto"]
 	}
     
-    return msj, 200, data["producto"]
+    
 }
