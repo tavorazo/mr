@@ -196,3 +196,45 @@ func (c Beta) DeleteProduct(account_id, product_id string) revel.Result {
 	return c.RenderJson(data)
 
 }
+
+func (c Beta) ProductsAll(account_id string) revel.Result {
+
+	data := make(map[string]interface{})
+
+	token := c.Request.Header.Get("token")		// Lee token desde header
+
+	result, status, datos := base.GetProducts(true, account_id, token, "") // True para activar la busqueda de todos los productos
+
+	if(status != 200){
+		data["error"] = result
+	} else{
+		data["OK"] = result
+		data["products"] = datos
+	}
+
+	c.Response.Status = status
+	data["status"] = status
+
+	return c.RenderJson(data)
+}
+
+func (c Beta) ProductsOne(account_id, product_id string) revel.Result {
+
+	data := make(map[string]interface{})
+
+	token := c.Request.Header.Get("token")		// Lee token desde header
+
+	result, status, datos := base.GetProducts(false, account_id, token, product_id) // False para desactivar la busqueda de todos los productos
+
+	if(status != 200){
+		data["error"] = result
+	} else{
+		data["OK"] = result
+		data["products"] = datos
+	}
+
+	c.Response.Status = status
+	data["status"] = status
+
+	return c.RenderJson(data)
+}

@@ -181,3 +181,57 @@ func EraseProduct(account_id, n_serial string, token string) (string, int){
 	return "Producto eliminado", 200
 
 }
+
+func GetProducts(all bool, account_id string, token, n_serial string) (string, int, interface{}) {
+
+	/* 	Función que busca en la base de datos uno o más productos
+		"all" es un valor booleano que indica si se quieren todos los productos o uno en específico
+		Recibe también los valores de id de la cuenta y el numero de serial del producto en caso de que se requiera
+	*/
+
+	data := make(map[string]interface{})
+
+	if CheckToken(token) == false {
+		return "token no válido", 403, data   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false {
+		return "Usuario no encontrado", 403, data		//Verifica que el account_id exista en la base de datos
+	}
+
+	session, err := mgo.Dial(HostDB)
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500, data
+    }
+    defer session.Close()
+
+    session.SetMode(mgo.Monotonic, true)
+    con := session.DB(NameDB).C(CollectionDB)
+
+    type Result struct{
+    	Products 	[]models.Product 	`json:"products"`
+    }
+
+    result := Result{}
+
+    if all == false {  // Si está desactivada la opción de todos los productos buscará uno en específico de acuerdo al n_serial indicado
+    	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"n_serial":n_serial} }, "_id":0 }).One(&result)
+    } else{
+    	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": 1, "_id":0 }).One(&result)
+    }
+    
+    if err != nil  {
+    	return "No se encontró el producto", 400, data
+    }
+
+	data["producto"] = result.Products
+	msj := ""
+
+	if len(result.Products) == 0 {
+		msj = "No hay productos en el inventario"  // Retorna el mensaje de acuerdo a la cantidad de productos encontrada
+	} else if len(result.Products) == 1 {
+		msj = "Producto encontrado"
+	} else {
+		msj = "Productos encontrados"
+	}
+    
+    return msj, 200, data["producto"]
+}
