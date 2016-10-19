@@ -13,7 +13,7 @@ func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 	/* Función que recibe los valores de nickname como string, y como JSON del producto nuevo que se insertará en la BD */
 
 	if CheckToken(token) == false {
-		return "token no válido", 403   // Verifica que sea un token válido
+		return "token no válido", 401   // Verifica que sea un token válido
 	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
@@ -40,7 +40,7 @@ func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 	err = con.Update(colQuerier, change)
 
 	if err != nil {		
-		return "Usuario no encontrado", 401
+		return "Usuario no encontrado", 400
 	}
 
 	return "Producto agregado en el almacén", 201
@@ -79,7 +79,7 @@ func UpdateProductAmount(account_id, n_serial string, token string, jsonStr []by
 	/* Función que recibe los valores de ACCOUNT_ID como string, y como JSON la nueva cantidad del producto con n_serial */
 
 	if CheckToken(token) == false {
-		return "token no válido", 403   // Verifica que sea un token válido
+		return "token no válido", 401   // Verifica que sea un token válido
 	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
@@ -115,7 +115,7 @@ func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (s
 		Se reciben el id de usuario y el número de serie unico del producto */
 
 	if CheckToken(token) == false {
-		return "token no válido", 403   // Verifica que sea un token válido
+		return "token no válido", 401   // Verifica que sea un token válido
 	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
@@ -155,7 +155,7 @@ func EraseProduct(account_id, n_serial string, token string) (string, int){
 		se recibe el id de usuario y el numero de serie unico del producto */
 
 	if CheckToken(token) == false {
-		return "token no válido", 403   // Verifica que sea un token válido
+		return "token no válido", 401   // Verifica que sea un token válido
 	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
@@ -192,7 +192,7 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
 	data := make(map[string]interface{})
 
 	if CheckToken(token) == false {
-		return "token no válido", 403, data   // Verifica que sea un token válido
+		return "token no válido", 401, data   // Verifica que sea un token válido
 	} else if UserExists("_id", account_id) == false {
 		return "Usuario no encontrado", 403, data		//Verifica que el account_id exista en la base de datos
 	}
@@ -227,14 +227,14 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
 
 	if productsFind == 0 {
 		if all == true {
-			return "No hay productos en el inventario", 200, data["producto"]
+			return "No hay productos en el inventario", 206, data["producto"]  // Si realiza una búsqueda de todos los productos retorna exito pero con el array vacío
 		} else {
-			return "Producto no encontrado", 400, data["producto"]
+			return "Producto no encontrado", 400, data["producto"]				// Si es una búsqueda de un solo producto retorna error al no ser encontrado
 		}
 	} else if productsFind == 1 {
-		return "Producto encontrado", 200, data["producto"]
+		return "Producto encontrado", 200, data["producto"]			// Si hay un solo producto
 	} else {
-		return "Productos encontrados", 200, data["producto"]
+		return "Productos encontrados", 200, data["producto"]		// Si hay dos o más productos
 	}
     
     

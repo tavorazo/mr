@@ -18,13 +18,13 @@ func NewUser(jsonStr []byte) (string, int) {
 	json.Unmarshal(jsonStr, usr)			// Recibe el valor json y lo almacena en la estructura
 
 	if(usr.Pass != usr.Confirm_pass) {
-		return "Las contraseñas no coinciden", 400
+		return "Las contraseñas no coinciden", 409
 	} else if(usr.Mail != usr.Confirm_mail) {
-		return "Los correos no coinciden", 400
+		return "Los correos no coinciden", 409
 	} else if UserExists("mail",usr.Mail) == true {
-		return "Correo ya existente en la base de datos", 400
+		return "Correo ya existente en la base de datos", 409
 	} else if UserExists("nickname",usr.Nickname) == true {
-		return "Nombre de usuario ya existente en la base de datos", 400
+		return "Nombre de usuario ya existente en la base de datos", 409
 	}
 
 	usr.Pass = EncryptToString(usr.Pass)	// Encripta la contraseña
@@ -57,11 +57,11 @@ func NewPass(account_id string, jsonStr []byte) (string, int) {
 	json.Unmarshal(jsonStr, passValues)
 
 	if UserExists("_id", account_id) == false{
-		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
+		return "Usuario no encontrado", 400		//Verifica que el account_id exista en la base de datos
 	}
 
 	if(passValues.Pass != passValues.Confirm_pass) {
-		return "Las contraseñas no coinciden", 400
+		return "Las contraseñas no coinciden", 409
 	}
 
 	passValues.Pass = EncryptToString(passValues.Pass)	// Encripta la contraseña
@@ -82,7 +82,7 @@ func NewPass(account_id string, jsonStr []byte) (string, int) {
 	err = con.Update(colQuerier, change)
 
 	if err != nil {		
-		return "Usuario no encontrado", 401
+		return "Usuario no encontrado", 400
 	}
 
 	return "Password actualizada", 200
@@ -112,7 +112,7 @@ func Auth(jsonStr []byte) (string, int) {
     err = con.Find(bson.M{"nickname": logValues.Nickname, "pass": pass}).One(&result) // Busca un nombre en la colección y lo almacena en result
 
 	if err != nil {
-		return "Usuario no encontrado",401
+		return "Usuario no encontrado",400
 	}
 
     token := CreateToken(bson.ObjectId(result.Id).Hex(), result.Firstname+" "+result.Lastname)
@@ -140,7 +140,7 @@ func MailRecover(mail string) (string, int){
     err = con.Find(bson.M{"mail": mail}).One(&result) // Busca un nombre en la colección y lo almacena en result
 
 	if err != nil {
-		return "Usuario no encontrado",401
+		return "Usuario no encontrado",400
 	}
 
 	mailing.PassRecoverMail(result.Mail)  // Llama a la función que envía el correo con el link de recuperación
@@ -187,7 +187,7 @@ func UserExists(userBy, textUser string) bool {
 func UserEdit(account_id, token string,jsonStr []byte) (string, int){
 
 	if CheckToken(token) == false {
-		return "token no válido", 403
+		return "token no válido", 401
 	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
@@ -210,7 +210,7 @@ func UserEdit(account_id, token string,jsonStr []byte) (string, int){
 	err = con.Update(colQuerier, change)
 
 	if err != nil {		
-		return "Usuario no encontrado", 401
+		return "Usuario no encontrado", 400
 	}
 
 	return "Datos de usuario almacenados", 200
