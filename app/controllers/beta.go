@@ -238,3 +238,26 @@ func (c Beta) ProductsOne(account_id, product_id string) revel.Result {
 
 	return c.RenderJson(data)
 }
+
+// Proveedores
+
+func (c Beta) AddCaterer(account_id string) revel.Result {
+
+	data := make(map[string]interface{})
+
+	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	token := c.Request.Header.Get("token")		// Lee token desde header
+
+	result,status := base.NewCaterer(account_id, token, body)
+
+	if(status != 201){
+		data["error"] = result
+	} else{
+		data["OK"] = result
+	}
+
+	c.Response.Status = status
+	data["status"] = status
+
+	return c.RenderJson(data)
+}

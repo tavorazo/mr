@@ -24,6 +24,10 @@ DELETE 	/beta/:account_id/almacen/:product_id/delete 		Beta.DeleteProduct
 GET 	/beta/:account_id/almacen							Beta.ProductsAll
 GET		/beta/:account_id/almacen/:product_id				Beta.ProductsOne
 
+# Proveedores
+
+POST 	/beta/:account_id/caterers/add_caterer 		Beta.AddCaterer
+
 # Ignore favicon requests
 GET     /favicon.ico                            404
 
