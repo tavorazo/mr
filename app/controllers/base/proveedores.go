@@ -2,7 +2,7 @@ package base
 
 import (
 	"gopkg.in/mgo.v2"
-	// "gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
 
 	"mr/app/models"
@@ -20,6 +20,10 @@ func NewCaterer(account_id, token string, jsonStr []byte) (string, int) {
 
 	caterer := &models.Proveedor{}
 	json.Unmarshal(jsonStr, caterer)
+
+	if CatererExists(caterer.Name){
+		return "El nombre del proveedor ya existe", 409
+	}
 
 	session, err := mgo.Dial(HostDB)
 
@@ -39,4 +43,27 @@ func NewCaterer(account_id, token string, jsonStr []byte) (string, int) {
 
 	return "Nuevo proveedor agregado", 201
 
+}
+
+func CatererExists(name string) bool {
+
+	/* Función que verifica si existe el número de serial del producto en la base de datos */
+
+	session, err := mgo.Dial(HostDB)
+	if err != nil {
+		return false
+    }
+    defer session.Close()
+
+    session.SetMode(mgo.Monotonic, true)
+    con := session.DB(NameDB).C("proveedores")
+
+    result := &models.Proveedor{}
+    err = con.Find(bson.M{"name": name}).One(&result)
+
+    if err != nil{
+    	return false
+    } else{
+    	return true
+    }
 }
