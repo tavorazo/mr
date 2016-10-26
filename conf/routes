@@ -27,6 +27,7 @@ GET		/beta/:account_id/almacen/:product_id				Beta.ProductsOne
 # Proveedores
 
 POST 	/beta/:account_id/caterers/add_caterer 		Beta.AddCaterer
+PUT 	/beta/:account_id/caterers/edit_caterer		Beta.EditCaterer
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
