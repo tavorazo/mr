@@ -1,7 +1,6 @@
 package base
 
 import (
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
 
@@ -25,14 +24,12 @@ func NewCaterer(account_id, token string, jsonStr []byte) (string, int) {
 		return "El nombre del proveedor ya existe", 409
 	}
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C("proveedores")
 
     err = con.Insert(caterer)
@@ -49,13 +46,11 @@ func CatererExists(name string) bool {
 
 	/* Función que verifica si existe el número de serial del proveedor en la base de datos */
 
-	session, err := mgo.Dial(HostDB)
+	session, err := Connect()
 	if err != nil {
 		return false
     }
     defer session.Close()
-
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C("proveedores")
 
     result := &models.Proveedor{}
@@ -82,14 +77,12 @@ func UpdateCaterer(account_id, token string, jsonStr []byte) (string, int){
 	caterer := &models.Proveedor{}
 	json.Unmarshal(jsonStr, caterer)
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect()
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C("proveedores")
 
     colQuerier := bson.M{"_id": caterer.Id }  // Busca el documento por ACCOUNT_ID
@@ -104,3 +97,4 @@ func UpdateCaterer(account_id, token string, jsonStr []byte) (string, int){
 	return "Datos de proveedor cambiados", 200
 
 }
+

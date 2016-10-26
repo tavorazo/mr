@@ -1,7 +1,6 @@
 package base
 
 import (
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
 
@@ -30,14 +29,12 @@ func NewUser(jsonStr []byte) (string, int) {
 	usr.Pass = EncryptToString(usr.Pass)	// Encripta la contraseña
 	usr.Confirm_pass = EncryptToString(usr.Confirm_pass)
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
 	con := session.DB(NameDB).C(CollectionDB)
 	err = con.Insert(usr)
 
@@ -67,14 +64,12 @@ func NewPass(account_id string, jsonStr []byte) (string, int) {
 	passValues.Pass = EncryptToString(passValues.Pass)	// Encripta la contraseña
 	passValues.Confirm_pass = EncryptToString(passValues.Confirm_pass)
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ID_ACCOUNT
@@ -97,14 +92,12 @@ func Auth(jsonStr []byte) (string, int) {
 	logValues := &models.Usuario{}  // Llama al modelo de usuario para almacenar los valores recibidos en JSON
     json.Unmarshal(jsonStr, logValues)
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     result := models.Usuario{}
@@ -126,14 +119,12 @@ func MailRecover(mail string) (string, int){
 	/* Función que recibe el correo al que se enviará el link de recuperación de pass por medio de parámetro URL 
 		Verifica que el correo exista y devuelve un mensaje en caso de que el correo haya sido enviado o de error en caso contrario */
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     result := models.Usuario{}
@@ -154,13 +145,12 @@ func UserExists(userBy, textUser string) bool {
 	/* Función que verifica si existe algún valor en la base de datos recibe la opción a buscar (userBy) y el valor a buscar(textUser)
 		Retorna true en caso de encontrarlo o false cuando no se encuentra*/
 
-	session, err := mgo.Dial(HostDB)
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return false
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     findBson := bson.M{userBy:textUser}
@@ -195,14 +185,12 @@ func UserEdit(account_id, token string,jsonStr []byte) (string, int){
 	editValues := &models.Usuario{}
 	json.Unmarshal(jsonStr, editValues)
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ACCOUNT_ID

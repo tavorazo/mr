@@ -1,7 +1,6 @@
 package base
 
 import (
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
 
@@ -25,14 +24,12 @@ func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 		return "El número de serial del producto ya existe",400
 	}
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por nickname
@@ -51,13 +48,12 @@ func ProductExists(serial, account_id string) bool {
 
 	/* Función que verifica si existe el número de serial del producto en la base de datos */
 
-	session, err := mgo.Dial(HostDB)
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return false
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     type Result struct{
@@ -87,14 +83,12 @@ func UpdateProductAmount(account_id, n_serial string, token string, jsonStr []by
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": n_serial}  // Busca el documento por ACCOUNT_ID
@@ -127,14 +121,12 @@ func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (s
 		return "El número de serial del producto ya existe",400
 	}
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": n_serial}  // Busca el documento por ACCOUNT_ID
@@ -160,14 +152,12 @@ func EraseProduct(account_id, n_serial string, token string) (string, int){
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
-	session, err := mgo.Dial(HostDB)
-
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ACCOUNT_ID
@@ -197,13 +187,12 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
 		return "Usuario no encontrado", 403, data		//Verifica que el account_id exista en la base de datos
 	}
 
-	session, err := mgo.Dial(HostDB)
+	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500, data
     }
     defer session.Close()
 
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     type Result struct{
