@@ -3,6 +3,7 @@ package base
 import (
 	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
+	"time"
 
 	"mr/app/models"
 )
@@ -19,6 +20,7 @@ func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
+	productVals.Deleted = 0 	// False indica que el producto no ha sido borrado del almacén
 
 	if ProductExists(productVals.N_serial , account_id) == true {
 		return "El número de serial del producto ya existe",400
@@ -129,6 +131,7 @@ func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (s
 
     con := session.DB(NameDB).C(CollectionDB)
 
+    productVals.Deleted = 0  // Previene que se pueda actualizar el punto de restauración
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": n_serial}  // Busca el documento por ACCOUNT_ID
 	change := bson.M{"$set": bson.M{"products.$": productVals} } // Inserta en el array de productos
 	err = con.Update(colQuerier, change)
@@ -162,6 +165,37 @@ func EraseProduct(account_id, n_serial string, token string) (string, int){
 
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ACCOUNT_ID
 	change := bson.M{"$pull": bson.M{"products": bson.M{"n_serial":n_serial } } } // Elimina en el array de productos en base al número de serial
+	err = con.Update(colQuerier, change)
+
+	if err != nil {		
+		return "Producto no encontrado", 400
+	}
+
+	return "Producto eliminado totalmente de la base de datos", 200
+
+}
+
+func SaveDeletedProduct(account_id, n_serial string, token string) (string, int){
+
+	/* Función que actualiza un producto del usuario recibido de la base de datos para que se permita restaurar antes de ser eliminado
+		se recibe el id de usuario y el numero de serie unico del producto  */
+
+	if CheckToken(token) == false {
+		return "token no válido", 401   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
+	}
+
+	session, err := Connect() // Conecta a la base de datos
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+    con := session.DB(NameDB).C(CollectionDB)
+
+    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id) , "products.n_serial": n_serial }  // Busca el documento por ACCOUNT_ID
+	change := bson.M{"$set": bson.M{"products.$.deleted": int(time.Now().Unix())  } } // El campo deleted se actualiza con el tiempo unix actual
 	err = con.Update(colQuerier, change)
 
 	if err != nil {		
@@ -202,9 +236,9 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
     result := Result{}
 
     if all == false {  // Si está desactivada la opción de todos los productos buscará uno en específico de acuerdo al n_serial indicado
-    	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"n_serial":n_serial} }, "_id":0 }).One(&result)
+    	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"n_serial":n_serial, "deleted": 0} }, "_id":0 }).One(&result)
     } else{
-    	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": 1, "_id":0 }).One(&result)
+    	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"deleted": 0 } }, "_id":0 }).One(&result)
     }
     
     if err != nil  {

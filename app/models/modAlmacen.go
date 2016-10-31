@@ -11,4 +11,5 @@ type Product struct {
 	Sale			bool			`json:"sale"`
 	N_serial 		string 			`json:"n_serial"`
 	Caterer			bson.ObjectId 	`json:"caterer" bson:"caterer,omitempty"`
+	Deleted			int 			`json:"deleted"`
 }

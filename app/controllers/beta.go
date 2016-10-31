@@ -182,7 +182,7 @@ func (c Beta) DeleteProduct(account_id, product_id string) revel.Result {
 
 	token := c.Request.Header.Get("token")		// Lee token desde header
 
-	result,status := base.EraseProduct(account_id, product_id, token)
+	result,status := base.SaveDeletedProduct(account_id, product_id, token) // Llama a la función que pondrá en punto de restauración el producto indicado
 
 	if(status != 200){
 		data["error"] = result
