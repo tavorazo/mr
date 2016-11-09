@@ -19,7 +19,7 @@ func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
     }
     defer session.Close()
 
-	if CheckToken(token) == false {
+	if CheckToken(token, session) == false {
 		return "token no válido", 401   // Verifica que sea un token válido
 	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
@@ -71,7 +71,13 @@ func UpdateProductAmount(account_id, n_serial string, token string, jsonStr []by
 
 	/* Función que recibe los valores de ACCOUNT_ID como string, y como JSON la nueva cantidad del producto con n_serial */
 
-	if CheckToken(token) == false {
+	session, err := Connect() // Conecta a la base de datos
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+	if CheckToken(token, session) == false {
 		return "token no válido", 401   // Verifica que sea un token válido
 	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
@@ -79,12 +85,6 @@ func UpdateProductAmount(account_id, n_serial string, token string, jsonStr []by
 
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
-
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
-		return "No se ha conectado a la base de datos", 500
-    }
-    defer session.Close()
 
     con := session.DB(NameDB).C(CollectionDB)
 
@@ -111,7 +111,7 @@ func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (s
     }
     defer session.Close()
 
-	if CheckToken(token) == false {
+	if CheckToken(token, session) == false {
 		return "token no válido", 401   // Verifica que sea un token válido
 	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
@@ -144,17 +144,17 @@ func EraseProduct(account_id, n_serial string, token string) (string, int){
 	/* Función que elmina un producto del usuario recibido de la base de datos
 		se recibe el id de usuario y el numero de serie unico del producto */
 
-	if CheckToken(token) == false {
-		return "token no válido", 401   // Verifica que sea un token válido
-	} else if UserExists("_id", account_id) == false{
-		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
-	}
-
 	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
+
+	if CheckToken(token, session) == false {
+		return "token no válido", 401   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
+	}
 
     con := session.DB(NameDB).C(CollectionDB)
 
@@ -175,17 +175,17 @@ func SaveDeletedProduct(account_id, n_serial string, token string) (string, int)
 	/* Función que actualiza un producto del usuario recibido de la base de datos para que se permita restaurar antes de ser eliminado
 		se recibe el id de usuario y el numero de serie unico del producto  */
 
-	if CheckToken(token) == false {
-		return "token no válido", 401   // Verifica que sea un token válido
-	} else if UserExists("_id", account_id) == false{
-		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
-	}
-
 	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
+
+	if CheckToken(token, session) == false {
+		return "token no válido", 401   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
+	}
 
     con := session.DB(NameDB).C(CollectionDB)
 
@@ -210,17 +210,17 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
 
 	data := make(map[string]interface{})
 
-	if CheckToken(token) == false {
-		return "token no válido", 401, data   // Verifica que sea un token válido
-	} else if UserExists("_id", account_id) == false {
-		return "Usuario no encontrado", 403, data		//Verifica que el account_id exista en la base de datos
-	}
-
 	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500, data
     }
     defer session.Close()
+
+	if CheckToken(token, session) == false {
+		return "token no válido", 401, data   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false {
+		return "Usuario no encontrado", 403, data		//Verifica que el account_id exista en la base de datos
+	}
 
     con := session.DB(NameDB).C(CollectionDB)
 
@@ -233,12 +233,12 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
     if all == false {  // Si está desactivada la opción de todos los productos buscará uno en específico de acuerdo al n_serial indicado
     	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"n_serial":n_serial, "deleted": 0} }, "_id":0 }).One(&result)
     } else{
-    	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"deleted": 0 } }, "_id":0 }).One(&result)
+    	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": 1, "_id":0 }).One(&result)
     }
     
     if err != nil  {
     	return "No se encontró el producto", 400, data
-    }
+    } 	
 
 	data["producto"] = result.Products
 	productsFind := len(result.Products) // Cantidad de productos encontrados

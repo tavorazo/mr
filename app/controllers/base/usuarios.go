@@ -176,7 +176,13 @@ func UserExists(userBy, textUser string) bool {
 
 func UserEdit(account_id, token string,jsonStr []byte) (string, int){
 
-	if CheckToken(token) == false {
+	session, err := Connect() // Conecta a la base de datos
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+	if CheckToken(token, session) == false {
 		return "token no válido", 401
 	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
@@ -184,12 +190,6 @@ func UserEdit(account_id, token string,jsonStr []byte) (string, int){
 
 	editValues := &models.Usuario{}
 	json.Unmarshal(jsonStr, editValues)
-
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
-		return "No se ha conectado a la base de datos", 500
-    }
-    defer session.Close()
 
     con := session.DB(NameDB).C(CollectionDB)
 

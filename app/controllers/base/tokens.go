@@ -31,7 +31,7 @@ func CreateToken(iss string, name string) string{
 	return token
 }
 
-func CheckToken(token string) bool {
+func CheckToken(token string, session *mgo.Session) bool {
 
 	/* Función que verifica la expliración del token y retorna true si es válido o false en caso contrario */
 
@@ -55,14 +55,6 @@ func CheckToken(token string) bool {
 	pl := Payload{}
 	json.Unmarshal(payloadJson, &pl)
 
-	session, err := mgo.Dial(HostDB)
-
-	if err != nil {
-		return false
-    }
-    defer session.Close()
-
-    session.SetMode(mgo.Monotonic, true)
     con := session.DB(NameDB).C(CollectionDB)
 
     result := models.Usuario{}
