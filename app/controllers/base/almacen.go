@@ -2,6 +2,7 @@ package base
 
 import (
 	"gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2"
 	"encoding/json"
 	"time"
 
@@ -11,6 +12,12 @@ import (
 func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 
 	/* Función que recibe los valores de nickname como string, y como JSON del producto nuevo que se insertará en la BD */
+
+	session, err := Connect() // Conecta a la base de datos
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
 
 	if CheckToken(token) == false {
 		return "token no válido", 401   // Verifica que sea un token válido
@@ -22,15 +29,9 @@ func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 	json.Unmarshal(jsonStr, productVals)
 	productVals.Deleted = 0 	// False indica que el producto no ha sido borrado del almacén
 
-	if ProductExists(productVals.N_serial , account_id) == true {
+	if ProductExists(productVals.N_serial , account_id, session) == true {
 		return "El número de serial del producto ya existe",400
 	}
-
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
-		return "No se ha conectado a la base de datos", 500
-    }
-    defer session.Close()
 
     con := session.DB(NameDB).C(CollectionDB)
 
@@ -46,15 +47,9 @@ func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 
 }
 
-func ProductExists(serial, account_id string) bool {
+func ProductExists(serial, account_id string, session *mgo.Session) bool {
 
 	/* Función que verifica si existe el número de serial del producto en la base de datos */
-
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
-		return false
-    }
-    defer session.Close()
 
     con := session.DB(NameDB).C(CollectionDB)
 
@@ -63,7 +58,7 @@ func ProductExists(serial, account_id string) bool {
     }
 
     result := Result{}
-    err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": serial}).Select(bson.M{"products.n_serial": 1, "_id": 0}).One(&result)
+    err := con.Find(bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": serial}).Select(bson.M{"products.n_serial": 1, "_id": 0}).One(&result)
 
     if err != nil{
     	return false
@@ -110,6 +105,12 @@ func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (s
 	/* Función que actualiza un producto para un usuario en la base de datos 
 		Se reciben el id de usuario y el número de serie unico del producto */
 
+	session, err := Connect() // Conecta a la base de datos
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
 	if CheckToken(token) == false {
 		return "token no válido", 401   // Verifica que sea un token válido
 	} else if UserExists("_id", account_id) == false{
@@ -119,15 +120,9 @@ func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (s
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
 
-	if ProductExists(productVals.N_serial , account_id) == true {
+	if ProductExists(productVals.N_serial , account_id, session) == true {
 		return "El número de serial del producto ya existe",400
 	}
-
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
-		return "No se ha conectado a la base de datos", 500
-    }
-    defer session.Close()
 
     con := session.DB(NameDB).C(CollectionDB)
 
