@@ -29,6 +29,10 @@ DELETE 	/beta/:account_id/almacen/:product_id/delete 		Beta.DeleteProduct
 POST 	/beta/:account_id/caterers/add_caterer 		Beta.AddCaterer
 PUT 	/beta/:account_id/caterers/edit_caterer		Beta.EditCaterer
 
+# Pacientes
+
+POST	/beta/:account_id/patients/add/:reference_id		Beta.AddPatient
+
 # Ignore favicon requests
 GET     /favicon.ico                            404
 
