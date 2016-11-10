@@ -11,7 +11,7 @@ import (
 
 func NewPatient(account_id, reference_id string, token string, jsonStr []byte) (string, int) {
 
-	/* Función que recibe los valores de nickname como string, y como JSON del producto nuevo que se insertará en la BD */
+	/* Función que recibe los valores de nickname como string, y como JSON del paciente nuevo que se insertará en la BD */
 
 	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
@@ -40,6 +40,7 @@ func NewPatient(account_id, reference_id string, token string, jsonStr []byte) (
 
     	newReference := &models.PatientsExt{}
     	newReference.Reference_id = reference_id
+    	newReference.Account_id = bson.ObjectIdHex(account_id)
     	err = con.Insert(newReference)
 
     }

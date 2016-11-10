@@ -19,6 +19,7 @@ type Patient struct{
 
 type PatientsExt struct{
 	Id 				bson.ObjectId 	`json:"id" bson:"_id,omitempty"`
-	Reference_id	string			`json:"reference_id"`
+	Reference_id	string			`json:"reference_id"`  // A qué doctor/clinica está asignado el paciente
+	Account_id		bson.ObjectId	`json:"account_id"`
 	Patients 		[]Patient		`json:"patients"`
 } 
