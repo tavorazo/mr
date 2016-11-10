@@ -20,7 +20,7 @@ func NewCaterer(account_id, token string, jsonStr []byte) (string, int) {
 
 	if CheckToken(token, session) == false {
 		return "token no válido", 401   // Verifica que sea un token válido
-	} else if UserExists("_id", account_id) == false{
+	} else if UserExists("_id", account_id, session) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
@@ -72,7 +72,7 @@ func UpdateCaterer(account_id, token string, jsonStr []byte) (string, int){
 
 	if CheckToken(token, session) == false {
 		return "token no válido", 401   // Verifica que sea un token válido
-	} else if UserExists("_id", account_id) == false{
+	} else if UserExists("_id", account_id, session) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 

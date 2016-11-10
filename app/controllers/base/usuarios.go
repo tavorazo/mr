@@ -1,6 +1,7 @@
 package base
 
 import (
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
 
@@ -13,6 +14,12 @@ func NewUser(jsonStr []byte) (string, int) {
 	/*	Función que recibe el valor en JSON y lo inserta en la Base de datos
 		Devuelve Un mensaje, el estátus del servidor y el error si existe */
 
+	session, err := Connect() // Conecta a la base de datos
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
 	usr := &models.Usuario{}
 	json.Unmarshal(jsonStr, usr)			// Recibe el valor json y lo almacena en la estructura
 
@@ -20,20 +27,14 @@ func NewUser(jsonStr []byte) (string, int) {
 		return "Las contraseñas no coinciden", 409
 	} else if(usr.Mail != usr.Confirm_mail) {
 		return "Los correos no coinciden", 409
-	} else if UserExists("mail",usr.Mail) == true {
+	} else if UserExists("mail",usr.Mail, session) == true {
 		return "Correo ya existente en la base de datos", 409
-	} else if UserExists("nickname",usr.Nickname) == true {
+	} else if UserExists("nickname",usr.Nickname, session) == true {
 		return "Nombre de usuario ya existente en la base de datos", 409
 	}
 
 	usr.Pass = EncryptToString(usr.Pass)	// Encripta la contraseña
 	usr.Confirm_pass = EncryptToString(usr.Confirm_pass)
-
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
-		return "No se ha conectado a la base de datos", 500
-    }
-    defer session.Close()
 
 	con := session.DB(NameDB).C(CollectionDB)
 	err = con.Insert(usr)
@@ -50,10 +51,16 @@ func NewPass(account_id string, jsonStr []byte) (string, int) {
 	/* Función que recibe los valores de ID_ACCOUNT como string, y como JSON de nuevo pass y confirm_pass 
 		para actualizarlos en la BD */
 
+	session, err := Connect() // Conecta a la base de datos
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
 	passValues := &models.Usuario{}
 	json.Unmarshal(jsonStr, passValues)
 
-	if UserExists("_id", account_id) == false{
+	if UserExists("_id", account_id, session) == false{
 		return "Usuario no encontrado", 400		//Verifica que el account_id exista en la base de datos
 	}
 
@@ -63,12 +70,6 @@ func NewPass(account_id string, jsonStr []byte) (string, int) {
 
 	passValues.Pass = EncryptToString(passValues.Pass)	// Encripta la contraseña
 	passValues.Confirm_pass = EncryptToString(passValues.Confirm_pass)
-
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
-		return "No se ha conectado a la base de datos", 500
-    }
-    defer session.Close()
 
     con := session.DB(NameDB).C(CollectionDB)
 
@@ -140,16 +141,10 @@ func MailRecover(mail string) (string, int){
 
 }
 
-func UserExists(userBy, textUser string) bool {
+func UserExists(userBy, textUser string, session *mgo.Session) bool {
 
 	/* Función que verifica si existe algún valor en la base de datos recibe la opción a buscar (userBy) y el valor a buscar(textUser)
 		Retorna true en caso de encontrarlo o false cuando no se encuentra*/
-
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
-		return false
-    }
-    defer session.Close()
 
     con := session.DB(NameDB).C(CollectionDB)
 
@@ -165,7 +160,7 @@ func UserExists(userBy, textUser string) bool {
     }
     
     result := models.Usuario{}
-    err = con.Find(findBson).One(&result) // Busca un nombre en la colección y lo almacena en result
+    err := con.Find(findBson).One(&result) // Busca un nombre en la colección y lo almacena en result
 
     if err != nil{
     	return false
@@ -184,7 +179,7 @@ func UserEdit(account_id, token string,jsonStr []byte) (string, int){
 
 	if CheckToken(token, session) == false {
 		return "token no válido", 401
-	} else if UserExists("_id", account_id) == false{
+	} else if UserExists("_id", account_id, session) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
