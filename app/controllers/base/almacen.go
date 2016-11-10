@@ -225,6 +225,7 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
     con := session.DB(NameDB).C(CollectionDB)
 
     type Result struct{
+    	Id 			bson.ObjectId 		`json:"id" bson:"_id,omitempty"`
     	Products 	[]models.Product 	`json:"products"`
     }
 
@@ -233,7 +234,8 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
     if all == false {  // Si está desactivada la opción de todos los productos buscará uno en específico de acuerdo al n_serial indicado
     	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"n_serial":n_serial, "deleted": 0} }, "_id":0 }).One(&result)
     } else{
-    	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": 1, "_id":0 }).One(&result)
+    	filter := bson.M{"$filter": bson.M{"input": "$products", "as": "product", "cond":bson.M{"$eq": []interface{}{"$$product.deleted", 0} } }}  // Aggregation query para MGO
+    	err = con.Pipe([]bson.M{{"$match":bson.M{"_id": bson.ObjectIdHex(account_id)}}, {"$project": bson.M{"products": filter }} }).One(&result)
     }
     
     if err != nil  {
