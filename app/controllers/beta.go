@@ -284,6 +284,8 @@ func (c Beta) EditCaterer(account_id string) revel.Result {
 
 }
 
+// PACIENTES
+
 func (c Beta) AddPatient(account_id, reference_id string) revel.Result {
 
 	data := make(map[string]interface{})
@@ -297,6 +299,27 @@ func (c Beta) AddPatient(account_id, reference_id string) revel.Result {
 		data["error"] = result
 	} else{
 		data["OK"] = result
+	}
+
+	c.Response.Status = status
+	data["status"] = status
+
+	return c.RenderJson(data)
+}
+
+func (c Beta) PatientsAll(account_id, reference_id string) revel.Result {
+
+	data := make(map[string]interface{})
+
+	token := c.Request.Header.Get("token")		// Lee token desde header
+
+	result, status, datos := base.GetPatients(true, account_id, reference_id, token, "") // True para activar la busqueda de todos los productos
+
+	if(status != 200){
+		data["error"] = result
+	} else{
+		data["OK"] = result
+		data["patients"] = datos
 	}
 
 	c.Response.Status = status
