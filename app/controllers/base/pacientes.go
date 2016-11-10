@@ -121,13 +121,13 @@ func GetPatients(all bool, account_id, reference_id string, token, patient_id st
     result := models.PatientsExt{}
 
     if all == false {  // Si está desactivada la opción de todos los pacientes buscará uno en específico de acuerdo al id de referencia indicado
-    	err = con.Find(bson.M{"reference_id": reference_id}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"id":patient_id} }}).One(&result)
+    	err = con.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"id":patient_id} }}).One(&result)
     } else{
-    	err = con.Find(bson.M{"reference_id": reference_id}).One(&result)
+    	err = con.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).One(&result)
     }
     
     if err != nil  {
-    	return "No hay pacientes para el id de referencia", 206, data
+    	return "No se encontraron pacientes", 206, data
     } 	
 
 	data["paciente"] = result.Patients
@@ -135,7 +135,7 @@ func GetPatients(all bool, account_id, reference_id string, token, patient_id st
 
 	if patientsFound == 0 {
 		if all == true {
-			return "No hay pacientes para el id de referencia", 206, data["paciente"]  // Si realiza una búsqueda de todos los pacientes retorna exito pero con el array vacío
+			return "No se encontraron pacientes", 206, data["paciente"]  // Si realiza una búsqueda de todos los pacientes retorna exito pero con el array vacío
 		} else {
 			return "Paciente no encontrado", 400, data["paciente"]				// Si es una búsqueda de un solo paciente retorna error al no ser encontrado
 		}
