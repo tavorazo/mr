@@ -32,9 +32,9 @@ func NewPatient(account_id, reference_id string, token string, jsonStr []byte) (
 
     patientId := 1
 
-    if ReferenceExists(reference_id, session){
+    if ReferenceExists(reference_id, account_id, session){
 
-    	patientId = GetPatientsNumber(reference_id, session) + 1  // Obtiene el número de pacientes para asignarles el folio de paciente como id
+    	patientId = GetLastPatientId(reference_id, account_id, session) + 1  // Obtiene el número de pacientes para asignarles el folio de paciente como id
 
     } else { // Si no existe el id de referencia (doctor/clinica) se crea un nuevo documento para el array de pacientes
 
@@ -62,12 +62,12 @@ func NewPatient(account_id, reference_id string, token string, jsonStr []byte) (
 	return "Paciente agregado con éxito", 201
 }
 
-func ReferenceExists(reference_id string, session *mgo.Session) bool {
+func ReferenceExists(reference_id, account_id string, session *mgo.Session) bool {
 
 	con := session.DB(NameDB).C("pacientes")
 
     result := models.PatientsExt{}
-    err := con.Find(bson.M{"reference_id": reference_id}).One(&result)
+    err := con.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).One(&result)
 
     if err != nil{
     	return false
@@ -77,21 +77,29 @@ func ReferenceExists(reference_id string, session *mgo.Session) bool {
 
 }
 
-func GetPatientsNumber(reference_id string, session *mgo.Session) int {
+func GetLastPatientId(reference_id, account_id string, session *mgo.Session) int {
 
 	con := session.DB(NameDB).C("pacientes")
 
 	result := models.PatientsExt{}
 
-	err := con.Find(bson.M{"reference_id": reference_id}).Select(bson.M{"patients": 1, "_id": 0 }).One(&result)
+	err := con.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"patients": bson.M{"$slice": -1 }, "_id": 0 }).One(&result)
 
 	if err != nil  {
     	return 0
     }
 
-    patientsFound := len(result.Patients) // Cantidad de pacientes encontrados
+    if len(result.Patients) == 0 { // Cantidad de pacientes encontrados
+    	return 0
+    } 
 
-    return patientsFound
+    lastId, err := strconv.Atoi(result.Patients[0].Id) // Cantidad de pacientes encontrados
+
+    if err != nil  {
+    	return 0
+    }
+
+    return lastId
 
 }
 
