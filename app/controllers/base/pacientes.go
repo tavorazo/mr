@@ -64,6 +64,8 @@ func NewPatient(account_id, reference_id string, token string, jsonStr []byte) (
 
 func ReferenceExists(reference_id, account_id string, session *mgo.Session) bool {
 
+	/* Función que verifica si existe un array de pacientes para el id de referencia indicado */
+
 	con := session.DB(NameDB).C("pacientes")
 
     result := models.PatientsExt{}
@@ -78,6 +80,8 @@ func ReferenceExists(reference_id, account_id string, session *mgo.Session) bool
 }
 
 func GetLastPatientId(reference_id, account_id string, session *mgo.Session) int {
+
+	/* Función que devuelve en numero entero el último ID de paciente de determinado id de referencia */
 
 	con := session.DB(NameDB).C("pacientes")
 
@@ -153,4 +157,40 @@ func GetPatients(all bool, account_id, reference_id string, token, patient_id st
 		return "Pacientes encontrados", 200, data["paciente"]		// Si hay dos o más pacientes
 	}
     
+}
+
+func UpdatePatient(account_id, reference_id string, patient_id, token string, jsonStr []byte) (string, int){
+
+	/* Función que actualiza un paciente para un usuario, con la referencia (doctor/clínica) indicada en la base de datos 
+		Se reciben el id de usuario, el id de referencia y el id de paciente (folio) */
+
+	session, err := Connect() // Conecta a la base de datos
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+	if CheckToken(token, session) == false {
+		return "token no válido", 401   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id, session) == false{
+		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
+	}
+
+	patientVals := &models.Patient{}
+	json.Unmarshal(jsonStr, patientVals)
+
+	patientVals.Id = patient_id 	// Evita que se borre el id de paciente
+
+    con := session.DB(NameDB).C("pacientes")
+
+    colQuerier := bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id), "patients._id": patient_id }  // Busca el documento
+	change := bson.M{"$set": bson.M{"patients.$": patientVals} } // Inserta en el array de productos
+	err = con.Update(colQuerier, change)
+
+	if err != nil {		
+		return "Paciente no encontrado", 400
+	}
+
+	return "Datos del paciente actualizados", 200
+
 }

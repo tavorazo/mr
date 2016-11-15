@@ -327,3 +327,25 @@ func (c Beta) PatientsAll(account_id, reference_id string) revel.Result {
 
 	return c.RenderJson(data)
 }
+
+func (c Beta) EditPatient(account_id, reference_id string, patient_id string) revel.Result {
+
+	data := make(map[string]interface{})
+
+	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	token := c.Request.Header.Get("token")		// Lee token desde header
+
+	result,status := base.UpdatePatient(account_id, reference_id, patient_id, token, body)
+
+	if(status != 200){
+		data["error"] = result
+	} else{
+		data["OK"] = result
+	}
+
+	c.Response.Status = status
+	data["status"] = status
+
+	return c.RenderJson(data)
+
+}

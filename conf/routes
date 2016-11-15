@@ -31,8 +31,9 @@ PUT 	/beta/:account_id/caterers/edit_caterer		Beta.EditCaterer
 
 # Pacientes
 
-GET		/beta/:account_id/patients/:reference_id			Beta.PatientsAll
-POST	/beta/:account_id/patients/add/:reference_id		Beta.AddPatient
+GET		/beta/:account_id/patients/:reference_id					Beta.PatientsAll
+POST	/beta/:account_id/patients/add/:reference_id				Beta.AddPatient
+PUT 	/beta/:account_id/patients/:reference_id/edit/:patient_id 	Beta.EditPatient
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
