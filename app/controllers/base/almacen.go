@@ -9,7 +9,7 @@ import (
 	"mr/app/models"
 )
 
-func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
+func NewProduct(account_id, reference_id string, token string, jsonStr []byte) (string, int) {
 
 	/* Función que recibe los valores de nickname como string, y como JSON del producto nuevo que se insertará en la BD */
 
@@ -29,13 +29,23 @@ func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 	json.Unmarshal(jsonStr, productVals)
 	productVals.Deleted = 0 	// False indica que el producto no ha sido borrado del almacén
 
-	if ProductExists(productVals.N_serial , account_id, session) == true {
+
+    con := session.DB(NameDB).C("almacenes")
+
+    if StoreExists(reference_id, account_id, session) == false { // Si no existe el almacén en la base de datos crea uno nuevo
+
+    	newReference := &models.Almacen{}
+    	newReference.Reference_id = reference_id
+    	newReference.Account_id = bson.ObjectIdHex(account_id)
+    	err = con.Insert(newReference)
+
+    }
+
+    if ProductExists(productVals.N_serial, account_id, reference_id, session) == true {
 		return "El número de serial del producto ya existe",400
 	}
 
-    con := session.DB(NameDB).C(CollectionDB)
-
-    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por nickname
+    colQuerier := bson.M{"account_id": bson.ObjectIdHex(account_id), "reference_id": reference_id}  // Busca el documento por account_id y referencia
 	change := bson.M{"$push": bson.M{"products": productVals} } // Inserta en el array de productos
 	err = con.Update(colQuerier, change)
 
@@ -47,18 +57,18 @@ func NewProduct(account_id, token string, jsonStr []byte) (string, int) {
 
 }
 
-func ProductExists(serial, account_id string, session *mgo.Session) bool {
+func ProductExists(serial string, account_id, reference_id string, session *mgo.Session) bool {
 
 	/* Función que verifica si existe el número de serial del producto en la base de datos */
 
-    con := session.DB(NameDB).C(CollectionDB)
+    con := session.DB(NameDB).C("almacenes")
 
     type Result struct{
     	Products []models.Product `json:"products"`
     }
 
     result := Result{}
-    err := con.Find(bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": serial}).Select(bson.M{"products.n_serial": 1, "_id": 0}).One(&result)
+    err := con.Find(bson.M{"account_id": bson.ObjectIdHex(account_id), "reference_id": reference_id, "products.n_serial": serial}).Select(bson.M{"products.n_serial": 1, "_id": 0}).One(&result)
 
     if err != nil{
     	return false
@@ -67,7 +77,7 @@ func ProductExists(serial, account_id string, session *mgo.Session) bool {
     }
 }
 
-func UpdateProductAmount(account_id, n_serial string, token string, jsonStr []byte) (string, int) {
+func UpdateProductAmount(account_id, reference_id string, n_serial, token string, jsonStr []byte) (string, int) {
 
 	/* Función que recibe los valores de ACCOUNT_ID como string, y como JSON la nueva cantidad del producto con n_serial */
 
@@ -86,9 +96,9 @@ func UpdateProductAmount(account_id, n_serial string, token string, jsonStr []by
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
 
-    con := session.DB(NameDB).C(CollectionDB)
+    con := session.DB(NameDB).C("almacenes")
 
-    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": n_serial}  // Busca el documento por ACCOUNT_ID
+    colQuerier := bson.M{"account_id": bson.ObjectIdHex(account_id), "reference_id": reference_id, "products.n_serial": n_serial}  // Busca el documento por ACCOUNT_ID
 	change := bson.M{"$set": bson.M{"products.$.quantity": productVals.Quantity} } // Inserta en el array de productos
 	err = con.Update(colQuerier, change)
 
@@ -100,7 +110,7 @@ func UpdateProductAmount(account_id, n_serial string, token string, jsonStr []by
 
 }
 
-func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (string, int){
+func UpdateProduct(account_id, reference_id string, n_serial, token string, jsonStr []byte) (string, int){
 
 	/* Función que actualiza un producto para un usuario en la base de datos 
 		Se reciben el id de usuario y el número de serie unico del producto */
@@ -120,14 +130,12 @@ func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (s
 	productVals := &models.Product{}
 	json.Unmarshal(jsonStr, productVals)
 
-	if ProductExists(productVals.N_serial , account_id, session) == true {
-		return "El número de serial del producto ya existe",400
-	}
+	productVals.N_serial = n_serial
 
-    con := session.DB(NameDB).C(CollectionDB)
+    con := session.DB(NameDB).C("almacenes")
 
     productVals.Deleted = 0  // Previene que se pueda actualizar el punto de restauración
-    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id), "products.n_serial": n_serial}  // Busca el documento por ACCOUNT_ID
+    colQuerier := bson.M{"account_id": bson.ObjectIdHex(account_id), "reference_id": reference_id, "products.n_serial": n_serial}  // Busca el documento por ACCOUNT_ID
 	change := bson.M{"$set": bson.M{"products.$": productVals} } // Inserta en el array de productos
 	err = con.Update(colQuerier, change)
 
@@ -139,9 +147,9 @@ func UpdateProduct(account_id, n_serial string, token string, jsonStr []byte) (s
 
 }
 
-func EraseProduct(account_id, n_serial string, token string) (string, int){
+func EraseProduct(account_id, reference_id string, n_serial, token string) (string, int){
 
-	/* Función que elmina un producto del usuario recibido de la base de datos
+	/* Función que elimina un producto del usuario recibido de la base de datos
 		se recibe el id de usuario y el numero de serie unico del producto */
 
 	session, err := Connect() // Conecta a la base de datos
@@ -156,9 +164,9 @@ func EraseProduct(account_id, n_serial string, token string) (string, int){
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
-    con := session.DB(NameDB).C(CollectionDB)
+    con := session.DB(NameDB).C("almacenes")
 
-    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ACCOUNT_ID
+    colQuerier := bson.M{"account_id": bson.ObjectIdHex(account_id), "reference_id": reference_id}  // Busca el documento por ACCOUNT_ID
 	change := bson.M{"$pull": bson.M{"products": bson.M{"n_serial":n_serial } } } // Elimina en el array de productos en base al número de serial
 	err = con.Update(colQuerier, change)
 
@@ -170,7 +178,7 @@ func EraseProduct(account_id, n_serial string, token string) (string, int){
 
 }
 
-func SaveDeletedProduct(account_id, n_serial string, token string) (string, int){
+func SaveDeletedProduct(account_id, reference_id string, n_serial, token string) (string, int){
 
 	/* Función que actualiza un producto del usuario recibido de la base de datos para que se permita restaurar antes de ser eliminado
 		se recibe el id de usuario y el numero de serie unico del producto  */
@@ -187,9 +195,9 @@ func SaveDeletedProduct(account_id, n_serial string, token string) (string, int)
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
-    con := session.DB(NameDB).C(CollectionDB)
+    con := session.DB(NameDB).C("almacenes")
 
-    colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id) , "products.n_serial": n_serial }  // Busca el documento por ACCOUNT_ID
+    colQuerier := bson.M{"account_id": bson.ObjectIdHex(account_id),  "reference_id": reference_id, "products.n_serial": n_serial }  // Busca el documento por ACCOUNT_ID
 	change := bson.M{"$set": bson.M{"products.$.deleted": int(time.Now().Unix())  } } // El campo deleted se actualiza con el tiempo unix actual
 	err = con.Update(colQuerier, change)
 
@@ -201,7 +209,7 @@ func SaveDeletedProduct(account_id, n_serial string, token string) (string, int)
 
 }
 
-func GetProducts(all bool, account_id string, token, n_serial string) (string, int, interface{}) {
+func GetProducts(all bool, account_id, reference_id string, token, n_serial string) (string, int, interface{}) {
 
 	/* 	Función que busca en la base de datos uno o más productos
 		"all" es un valor booleano que indica si se quieren todos los productos o uno en específico
@@ -222,20 +230,20 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
 		return "Usuario no encontrado", 403, data		//Verifica que el account_id exista en la base de datos
 	}
 
-    con := session.DB(NameDB).C(CollectionDB)
+    con := session.DB(NameDB).C("almacenes")
 
-    type Result struct{
-    	Id 			bson.ObjectId 		`json:"id" bson:"_id,omitempty"`
-    	Products 	[]models.Product 	`json:"products"`
-    }
+    // type Result struct{
+    // 	Id 			bson.ObjectId 		`json:"id" bson:"_id,omitempty"`
+    // 	Products 	[]models.Product 	`json:"products"`
+    // }
 
-    result := Result{}
+    result := models.Almacen{}
 
     if all == false {  // Si está desactivada la opción de todos los productos buscará uno en específico de acuerdo al n_serial indicado
-    	err = con.Find(bson.M{"_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"n_serial":n_serial, "deleted": 0} }, "_id":0 }).One(&result)
+    	err = con.Find(bson.M{"account_id": bson.ObjectIdHex(account_id), "reference_id": reference_id}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"n_serial":n_serial, "deleted": 0} }, "_id":0 }).One(&result)
     } else{
     	filter := bson.M{"$filter": bson.M{"input": "$products", "as": "product", "cond":bson.M{"$eq": []interface{}{"$$product.deleted", 0} } }}  // Aggregation query para MGO
-    	err = con.Pipe([]bson.M{{"$match":bson.M{"_id": bson.ObjectIdHex(account_id)}}, {"$project": bson.M{"products": filter }} }).One(&result)
+    	err = con.Pipe([]bson.M{{"$match":bson.M{"account_id": bson.ObjectIdHex(account_id), "reference_id": reference_id}}, {"$project": bson.M{"products": filter }} }).One(&result)
     }
     
     if err != nil  {
@@ -258,4 +266,21 @@ func GetProducts(all bool, account_id string, token, n_serial string) (string, i
 	}
     
     
+}
+
+func StoreExists(reference_id, account_id string, session *mgo.Session) bool {
+
+	/* Función que verifica si existe un documento de almacén para el id de referencia indicado */
+
+	con := session.DB(NameDB).C("almacenes")
+
+    result := models.PatientsExt{}
+    err := con.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).One(&result)
+
+    if err != nil{
+    	return false
+    } else{
+    	return true
+    }
+
 }

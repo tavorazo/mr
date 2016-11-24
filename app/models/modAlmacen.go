@@ -13,3 +13,10 @@ type Product struct {
 	Caterer			bson.ObjectId 	`json:"caterer" bson:"caterer,omitempty"`
 	Deleted			int 			`json:"deleted"`
 }
+
+type Almacen struct{
+	Id 				bson.ObjectId 	`json:"id" bson:"_id,omitempty"`
+	Reference_id	string			`json:"reference_id"`  // A qué doctor/clinica está asignado el paciente
+	Account_id		bson.ObjectId	`json:"account_id"`
+	Products 		[]Product		`json:"patients"`
+} 

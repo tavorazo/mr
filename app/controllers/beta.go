@@ -113,14 +113,16 @@ func (c Beta) UpdateAccount(account_id string) revel.Result{
 	return c.RenderJson(data)
 }
 
-func (c Beta) AddProduct(account_id string) revel.Result{
+// Almacén
+
+func (c Beta) AddProduct(account_id, reference_id string) revel.Result{
 
 	data := make(map[string]interface{})
 
 	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
 	token := c.Request.Header.Get("token")		// Lee token desde header
 
-	result,status := base.NewProduct(account_id, token, body)
+	result,status := base.NewProduct(account_id, reference_id, token, body)
 
 	if(status != 201){
 		data["error"] = result
@@ -134,13 +136,13 @@ func (c Beta) AddProduct(account_id string) revel.Result{
 	return c.RenderJson(data)
 }
 
-func (c Beta) EditAmount(account_id, product_id string) revel.Result {
+func (c Beta) EditAmount(account_id, reference_id string, product_id string) revel.Result {
 	data := make(map[string]interface{})
 
 	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
 	token := c.Request.Header.Get("token")		// Lee token desde header
 
-	result,status := base.UpdateProductAmount(account_id, product_id, token, body)
+	result,status := base.UpdateProductAmount(account_id, reference_id, product_id, token, body)
 
 	if(status != 200){
 		data["error"] = result
@@ -154,14 +156,14 @@ func (c Beta) EditAmount(account_id, product_id string) revel.Result {
 	return c.RenderJson(data)
 }
 
-func (c Beta) EditProduct(account_id, product_id string) revel.Result {
+func (c Beta) EditProduct(account_id, reference_id string, product_id string) revel.Result {
 
 	data := make(map[string]interface{})
 
 	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
 	token := c.Request.Header.Get("token")		// Lee token desde header
 
-	result,status := base.UpdateProduct(account_id, product_id, token, body)
+	result,status := base.UpdateProduct(account_id, reference_id, product_id, token, body)
 
 	if(status != 200){
 		data["error"] = result
@@ -176,13 +178,13 @@ func (c Beta) EditProduct(account_id, product_id string) revel.Result {
 
 }
 
-func (c Beta) DeleteProduct(account_id, product_id string) revel.Result {
+func (c Beta) DeleteProduct(account_id, reference_id string, product_id string) revel.Result {
 
 	data := make(map[string]interface{})
 
 	token := c.Request.Header.Get("token")		// Lee token desde header
 
-	result,status := base.SaveDeletedProduct(account_id, product_id, token) // Llama a la función que pondrá en punto de restauración el producto indicado
+	result,status := base.SaveDeletedProduct(account_id, reference_id, product_id, token) // Llama a la función que pondrá en punto de restauración el producto indicado
 
 	if(status != 200){
 		data["error"] = result
@@ -197,13 +199,13 @@ func (c Beta) DeleteProduct(account_id, product_id string) revel.Result {
 
 }
 
-func (c Beta) ProductsAll(account_id string) revel.Result {
+func (c Beta) ProductsAll(account_id, reference_id string) revel.Result {
 
 	data := make(map[string]interface{})
 
 	token := c.Request.Header.Get("token")		// Lee token desde header
 
-	result, status, datos := base.GetProducts(true, account_id, token, "") // True para activar la busqueda de todos los productos
+	result, status, datos := base.GetProducts(true, account_id, reference_id, token, "") // True para activar la busqueda de todos los productos
 
 	if(status != 200){
 		data["error"] = result
@@ -218,13 +220,13 @@ func (c Beta) ProductsAll(account_id string) revel.Result {
 	return c.RenderJson(data)
 }
 
-func (c Beta) ProductsOne(account_id, product_id string) revel.Result {
+func (c Beta) ProductsOne(account_id, reference_id string, product_id string) revel.Result {
 
 	data := make(map[string]interface{})
 
 	token := c.Request.Header.Get("token")		// Lee token desde header
 
-	result, status, datos := base.GetProducts(false, account_id, token, product_id) // False para desactivar la busqueda de todos los productos
+	result, status, datos := base.GetProducts(false, account_id, reference_id, token, product_id) // False para desactivar la busqueda de todos los productos
 
 	if(status != 200){
 		data["error"] = result
