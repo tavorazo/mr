@@ -90,14 +90,24 @@ func Auth(jsonStr []byte) (string, int) {
 	/*	Función que recibe el los valores en JSON de autenticación y el número del intento
 		Devuelve el token en caso de exito o un mensaje en caso contrario, y el estátus del servidor */
 
-	logValues := &models.Usuario{}  // Llama al modelo de usuario para almacenar los valores recibidos en JSON
-    json.Unmarshal(jsonStr, logValues)
+	type LogValues struct { // Datos del host solicitante
+		Nickname 	string   	`json:"nickname"`
+		Pass  		string   	`json:"pass"`
+		Ip  		string   	`json:"ip"`
+	}
+
+	logValues := LogValues{}  // Llama al modelo de usuario para almacenar los valores recibidos en JSON
+    json.Unmarshal(jsonStr, &logValues)
 
 	session, err := Connect() // Conecta a la base de datos
 	if err != nil {
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
+
+    if IsMaliciousIp(logValues.Ip, session) {
+    	return "La IP desde donde se intenta acceder se encuentra bloqueada", 401
+    }
 
     con := session.DB(NameDB).C(CollectionDB)
 
@@ -197,5 +207,58 @@ func UserEdit(account_id, token string,jsonStr []byte) (string, int){
 	}
 
 	return "Datos de usuario almacenados", 200
+
+}
+
+func AddIp(jsonStr []byte) (string, int) {
+
+	type Applicant struct { // Datos del host solicitante
+		Ip  		string   	`json:"ip"`
+		nickname 	string   	`json:"nickname"`
+	}
+
+	applicant := Applicant{}
+
+    json.Unmarshal(jsonStr, &applicant)
+
+	session, err := Connect() // Conecta a la base de datos
+	if err != nil {
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+    con := session.DB(NameDB).C("blacklist")
+	err = con.Insert(bson.M{"ip":applicant.Ip})
+
+	if err != nil {
+		return "No se ha insertado", 500
+	}
+
+	/* 	En esta parte se enviará un correo al usuario para informarle
+		SendAlertmail(applicant.Nickname)
+	*/
+
+	return "Ip maliciosa agregada a lista negra", 201
+
+}
+
+func IsMaliciousIp(ip string, session *mgo.Session) bool {
+
+	type Ip_blacklist struct {
+		nickname 	string   	`json:"id" bson:"_id,omitempty"`
+		Ip  		string   	`json:"ip"`
+	}
+
+	result := Ip_blacklist{}
+
+	con := session.DB(NameDB).C("blacklist")
+
+	err := con.Find(bson.M{"ip": ip}).One(&result)
+
+	if err != nil{
+    	return false
+    } else{
+    	return true
+    }
 
 }

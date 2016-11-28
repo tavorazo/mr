@@ -113,6 +113,26 @@ func (c Beta) UpdateAccount(account_id string) revel.Result{
 	return c.RenderJson(data)
 }
 
+func (c Beta) AddIp(json_vals string) revel.Result {
+
+	data := make(map[string]interface{})
+
+	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status := base.AddIp(body)
+
+	if(status != 201){
+		data["error"] = result
+	} else{
+		data["OK"] = result
+	}
+	data["status"] = status
+
+	c.Response.Status = status
+	return c.RenderJson(data)
+
+}
+
+
 // Almacén
 
 func (c Beta) AddProduct(account_id, reference_id string) revel.Result{

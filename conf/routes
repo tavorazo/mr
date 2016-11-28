@@ -14,6 +14,7 @@ POST 	/beta/sign_up							Beta.SignUp
 GET		/beta/login								Beta.Login
 PUT		/beta/update_pass/:account_id			Beta.UpdatePass
 GET		/beta/recover_account/:mail				Beta.RecoverAccount
+POST 	/beta/malicious_ip/add					Beta.AddIp
 
 # Inventario
 
