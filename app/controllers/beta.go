@@ -10,125 +10,63 @@ type Beta struct {
 	*revel.Controller
 }
 
+var (
+	result 		string
+	status 		int
+	dataArray 	interface{}
+	body 		[]byte
+)
+
 func (c Beta) SignUp(json_vals string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	result,status := base.NewUser(body)
-
-	
-	if(status != 201){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-	data["status"] = status
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.NewUser(body)
 	c.Response.Status = status
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 
 }
 
 func (c Beta) Login() revel.Result{
 
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	result,status := base.Auth(body)
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = "Ha ingresado correctamente"
-		data["token"] = result
-	}
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.Auth(body)
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 }
 
 func (c Beta) RecoverAccount(mail string) revel.Result{
 
-	data := make(map[string]interface{})
-
 	// body, _ := ioutil.ReadAll(c.Request.Body)
-	result,status := base.MailRecover(mail)
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	result,status = base.MailRecover(mail)
 	c.Response.Status = status
-	data["status"] = status
 
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 
 }
 
 func (c Beta) UpdatePass(account_id string) revel.Result{
 
-	/* Recibe como parámetro URL el usuario al que se actualizará la contraseña 
-	   y de Body (ocultos) el JSON con los valores de pass y confirm_pass */
-
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)
-	result,status := base.NewPass(account_id, body)
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	body, _ = ioutil.ReadAll(c.Request.Body)
+	result,status = base.NewPass(account_id, body)
 	c.Response.Status = status
-	data["status"] = status
+	return c.RenderJson(OkResponse())
 
-	return c.RenderJson(data)
 }
 
 func (c Beta) UpdateAccount(account_id string) revel.Result{
 
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	token := c.Request.Header.Get("token") 		// Lee token desde header
-
-	result,status := base.UserEdit(account_id, token, body)
-	
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.UserEdit(account_id, c.Request.Header.Get("token"), body)
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 }
 
 func (c Beta) AddIp(json_vals string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	result,status := base.AddIp(body)
-
-	if(status != 201){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-	data["status"] = status
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.AddIp(body)
 	c.Response.Status = status
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 
 }
 
@@ -137,172 +75,67 @@ func (c Beta) AddIp(json_vals string) revel.Result {
 
 func (c Beta) AddProduct(account_id, reference_id string) revel.Result{
 
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result,status := base.NewProduct(account_id, reference_id, token, body)
-
-	if(status != 201){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.NewProduct(account_id, reference_id, c.Request.Header.Get("token"), body)
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 }
 
 func (c Beta) EditAmount(account_id, reference_id string, product_id string) revel.Result {
-	data := make(map[string]interface{})
 
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result,status := base.UpdateProductAmount(account_id, reference_id, product_id, token, body)
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.UpdateProductAmount(account_id, reference_id, product_id, c.Request.Header.Get("token"), body)
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 }
 
 func (c Beta) EditProduct(account_id, reference_id string, product_id string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result,status := base.UpdateProduct(account_id, reference_id, product_id, token, body)
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.UpdateProduct(account_id, reference_id, product_id, c.Request.Header.Get("token"), body)
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 
 }
 
 func (c Beta) DeleteProduct(account_id, reference_id string, product_id string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result,status := base.SaveDeletedProduct(account_id, reference_id, product_id, token) // Llama a la función que pondrá en punto de restauración el producto indicado
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	result,status = base.SaveDeletedProduct(account_id, reference_id, product_id, c.Request.Header.Get("token")) // Llama a la función que pondrá en punto de restauración el producto indicado
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 
 }
 
 func (c Beta) ProductsAll(account_id, reference_id string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result, status, datos := base.GetProducts(true, account_id, reference_id, token, "") // True para activar la busqueda de todos los productos
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-		data["products"] = datos
-	}
-
+	result, status, dataArray = base.GetProducts(true, account_id, reference_id, c.Request.Header.Get("token"), "") // True para activar la busqueda de todos los productos
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(ShowArrayResponse("products"))
 }
 
 func (c Beta) ProductsOne(account_id, reference_id string, product_id string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result, status, datos := base.GetProducts(false, account_id, reference_id, token, product_id) // False para desactivar la busqueda de todos los productos
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-		data["products"] = datos
-	}
-
+	result, status, dataArray = base.GetProducts(false, account_id, reference_id, c.Request.Header.Get("token"), product_id) // False para desactivar la busqueda de todos los productos
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(ShowArrayResponse("products"))
 }
 
 // Proveedores
 
 func (c Beta) AddCaterer(account_id string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result,status := base.NewCaterer(account_id, token, body)
-
-	if(status != 201){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.NewCaterer(account_id, c.Request.Header.Get("token"), body)
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 }
 
 func (c Beta) EditCaterer(account_id string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result,status := base.UpdateCaterer(account_id, token, body)
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.UpdateCaterer(account_id, c.Request.Header.Get("token"), body)
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 
 }
 
@@ -310,64 +143,52 @@ func (c Beta) EditCaterer(account_id string) revel.Result {
 
 func (c Beta) AddPatient(account_id, reference_id string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result,status := base.NewPatient(account_id, reference_id, token, body)
-
-	if(status != 201){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.NewPatient(account_id, reference_id, c.Request.Header.Get("token"), body)
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(OkResponse())
 }
 
 func (c Beta) PatientsAll(account_id, reference_id string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result, status, datos := base.GetPatients(true, account_id, reference_id, token, "") // True para activar la busqueda de todos los productos
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-		data["patients"] = datos
-	}
-
+	result, status, dataArray = base.GetPatients(true, account_id, reference_id, c.Request.Header.Get("token"), "") // True para activar la busqueda de todos los productos
 	c.Response.Status = status
-	data["status"] = status
-
-	return c.RenderJson(data)
+	return c.RenderJson(ShowArrayResponse("patients"))
 }
 
 func (c Beta) EditPatient(account_id, reference_id string, patient_id string) revel.Result {
 
-	data := make(map[string]interface{})
-
-	body, _ := ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
-	token := c.Request.Header.Get("token")		// Lee token desde header
-
-	result,status := base.UpdatePatient(account_id, reference_id, patient_id, token, body)
-
-	if(status != 200){
-		data["error"] = result
-	} else{
-		data["OK"] = result
-	}
-
+	body, _ = ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status = base.UpdatePatient(account_id, reference_id, patient_id, c.Request.Header.Get("token"), body)
 	c.Response.Status = status
+	return c.RenderJson(OkResponse())
+
+}
+
+// Funciones comunes de respuesta
+func OkResponse() interface{} {
+
+	data := make(map[string]interface{})
+	if(status >= 400){
+		data["error"]  	= 	result
+	} else{
+		data["OK"]  	= 	result
+	}
 	data["status"] = status
 
-	return c.RenderJson(data)
+	return data
 
+}
+func ShowArrayResponse(ArrayName string) interface{} {
+
+	data := make(map[string]interface{})
+	if(status >= 400){
+		data["error"] 	= 	result
+	} else{
+		data["OK"] 		= 	result
+		data[ArrayName] = 	dataArray
+	}
+	data["status"] = status
+
+	return data
 }
