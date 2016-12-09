@@ -2,7 +2,6 @@ package base
 
 import (
 	"gopkg.in/mgo.v2/bson"
-	"gopkg.in/mgo.v2"
 	"encoding/json"
 	"strconv"
 
@@ -13,35 +12,32 @@ func NewPatient(account_id, reference_id string, token string, jsonStr []byte) (
 
 	/* Función que recibe los valores de nickname como string, y como JSON del paciente nuevo que se insertará en la BD */
 
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
+	if Connect() == false { // Conecta a la base de datos
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-	if CheckToken(token, session) == false {
+	if CheckToken(token) == false {
 		return "token no válido", 401   // Verifica que sea un token válido
-	} else if UserExists("_id", account_id, session) == false{
+	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
 	patientVals := &models.Patient{}
 	json.Unmarshal(jsonStr, patientVals)
 
-    con := session.DB(NameDB).C("pacientes")
+    col = session.DB(NameDB).C("pacientes")
 
     patientId := 1
 
-    if ReferenceExists(reference_id, account_id, session){
-
-    	patientId = GetLastPatientId(reference_id, account_id, session) + 1  // Obtiene el número de pacientes para asignarles el folio de paciente como id
-
+    if ReferenceExists(reference_id, account_id){
+    	patientId = GetLastPatientId(reference_id, account_id) + 1  // Obtiene el número de pacientes para asignarles el folio de paciente como id
     } else { // Si no existe el id de referencia (doctor/clinica) se crea un nuevo documento para el array de pacientes
 
     	newReference := &models.PatientsExt{}
     	newReference.Reference_id = reference_id
     	newReference.Account_id = bson.ObjectIdHex(account_id)
-    	err = con.Insert(newReference)
+    	err = col.Insert(newReference)
 
     }
 
@@ -53,7 +49,7 @@ func NewPatient(account_id, reference_id string, token string, jsonStr []byte) (
 
     colQuerier := bson.M{"reference_id": reference_id}  // Busca el documento por id de referencia (doctor/clinica)
 	change := bson.M{"$push": bson.M{"patients": patientVals} } // Inserta en el array de productos
-	err = con.Update(colQuerier, change)
+	err = col.Update(colQuerier, change)
 
 	if err != nil {		
 		return "No se ha podido insertar el paciente", 400
@@ -62,14 +58,14 @@ func NewPatient(account_id, reference_id string, token string, jsonStr []byte) (
 	return "Paciente agregado con éxito", 201
 }
 
-func ReferenceExists(reference_id, account_id string, session *mgo.Session) bool {
+func ReferenceExists(reference_id, account_id string) bool {
 
 	/* Función que verifica si existe un array de pacientes para el id de referencia indicado */
 
-	con := session.DB(NameDB).C("pacientes")
+	col = session.DB(NameDB).C("pacientes")
 
     result := models.PatientsExt{}
-    err := con.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).One(&result)
+    err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).One(&result)
 
     if err != nil{
     	return false
@@ -79,15 +75,15 @@ func ReferenceExists(reference_id, account_id string, session *mgo.Session) bool
 
 }
 
-func GetLastPatientId(reference_id, account_id string, session *mgo.Session) int {
+func GetLastPatientId(reference_id, account_id string) int {
 
 	/* Función que devuelve en numero entero el último ID de paciente de determinado id de referencia */
 
-	con := session.DB(NameDB).C("pacientes")
+	col = session.DB(NameDB).C("pacientes")
 
 	result := models.PatientsExt{}
 
-	err := con.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"patients": bson.M{"$slice": -1 }, "_id": 0 }).One(&result)
+	err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"patients": bson.M{"$slice": -1 }, "_id": 0 }).One(&result)
 
 	if err != nil  {
     	return 0
@@ -97,7 +93,8 @@ func GetLastPatientId(reference_id, account_id string, session *mgo.Session) int
     	return 0
     } 
 
-    lastId, err := strconv.Atoi(result.Patients[0].Id) // Cantidad de pacientes encontrados
+    var lastId int
+    lastId, err = strconv.Atoi(result.Patients[0].Id) // Cantidad de pacientes encontrados
 
     if err != nil  {
     	return 0
@@ -116,26 +113,25 @@ func GetPatients(all bool, account_id, reference_id string, token, patient_id st
 
 	data := make(map[string]interface{})
 
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
+	if Connect() == false { // Conecta a la base de datos
 		return "No se ha conectado a la base de datos", 500, data
     }
     defer session.Close()
 
-	if CheckToken(token, session) == false {
+	if CheckToken(token) == false {
 		return "token no válido", 401, data   // Verifica que sea un token válido
-	} else if UserExists("_id", account_id, session) == false {
+	} else if UserExists("_id", account_id) == false {
 		return "Usuario no encontrado", 403, data		//Verifica que el account_id exista en la base de datos
 	}
 
-    con := session.DB(NameDB).C("pacientes")
+    col = session.DB(NameDB).C("pacientes")
 
     result := models.PatientsExt{}
 
     if all == false {  // Si está desactivada la opción de todos los pacientes buscará uno en específico de acuerdo al id de referencia indicado
-    	err = con.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"id":patient_id} }}).One(&result)
+    	err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"id":patient_id} }}).One(&result)
     } else{
-    	err = con.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).One(&result)
+    	err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).One(&result)
     }
     
     if err != nil  {
@@ -164,15 +160,14 @@ func UpdatePatient(account_id, reference_id string, patient_id, token string, js
 	/* Función que actualiza un paciente para un usuario, con la referencia (doctor/clínica) indicada en la base de datos 
 		Se reciben el id de usuario, el id de referencia y el id de paciente (folio) */
 
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
+	if Connect() == false { // Conecta a la base de datos
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-	if CheckToken(token, session) == false {
+	if CheckToken(token) == false {
 		return "token no válido", 401   // Verifica que sea un token válido
-	} else if UserExists("_id", account_id, session) == false{
+	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
@@ -181,11 +176,11 @@ func UpdatePatient(account_id, reference_id string, patient_id, token string, js
 
 	patientVals.Id = patient_id 	// Evita que se borre el id de paciente
 
-    con := session.DB(NameDB).C("pacientes")
+    col = session.DB(NameDB).C("pacientes")
 
     colQuerier := bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id), "patients._id": patient_id }  // Busca el documento
 	change := bson.M{"$set": bson.M{"patients.$": patientVals} } // Inserta en el array de productos
-	err = con.Update(colQuerier, change)
+	err = col.Update(colQuerier, change)
 
 	if err != nil {		
 		return "Paciente no encontrado", 400

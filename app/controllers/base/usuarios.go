@@ -1,7 +1,6 @@
 package base
 
 import (
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
 
@@ -14,8 +13,7 @@ func NewUser(jsonStr []byte) (string, int) {
 	/*	Función que recibe el valor en JSON y lo inserta en la Base de datos
 		Devuelve Un mensaje, el estátus del servidor y el error si existe */
 
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
+	if Connect() == false { // Conecta a la base de datos
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
@@ -27,17 +25,17 @@ func NewUser(jsonStr []byte) (string, int) {
 		return "Las contraseñas no coinciden", 409
 	} else if(usr.Mail != usr.Confirm_mail) {
 		return "Los correos no coinciden", 409
-	} else if UserExists("mail",usr.Mail, session) == true {
+	} else if UserExists("mail",usr.Mail) == true {
 		return "Correo ya existente en la base de datos", 409
-	} else if UserExists("nickname",usr.Nickname, session) == true {
+	} else if UserExists("nickname",usr.Nickname,) == true {
 		return "Nombre de usuario ya existente en la base de datos", 409
 	}
 
 	usr.Pass = EncryptToString(usr.Pass)	// Encripta la contraseña
 	usr.Confirm_pass = EncryptToString(usr.Confirm_pass)
 
-	con := session.DB(NameDB).C(CollectionDB)
-	err = con.Insert(usr)
+	col = session.DB(NameDB).C("usuarios")
+	err = col.Insert(usr)
 
 	if err != nil {
 		return "No se ha insertado", 500
@@ -51,8 +49,7 @@ func NewPass(account_id string, jsonStr []byte) (string, int) {
 	/* Función que recibe los valores de ID_ACCOUNT como string, y como JSON de nuevo pass y confirm_pass 
 		para actualizarlos en la BD */
 
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
+	if Connect() == false { // Conecta a la base de datos
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
@@ -60,7 +57,7 @@ func NewPass(account_id string, jsonStr []byte) (string, int) {
 	passValues := &models.Usuario{}
 	json.Unmarshal(jsonStr, passValues)
 
-	if UserExists("_id", account_id, session) == false{
+	if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 400		//Verifica que el account_id exista en la base de datos
 	}
 
@@ -71,11 +68,11 @@ func NewPass(account_id string, jsonStr []byte) (string, int) {
 	passValues.Pass = EncryptToString(passValues.Pass)	// Encripta la contraseña
 	passValues.Confirm_pass = EncryptToString(passValues.Confirm_pass)
 
-    con := session.DB(NameDB).C(CollectionDB)
+    col = session.DB(NameDB).C("usuarios")
 
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ID_ACCOUNT
 	change := bson.M{"$set": bson.M{"pass": passValues.Pass, "confirm_pass": passValues.Confirm_pass}}
-	err = con.Update(colQuerier, change)
+	err = col.Update(colQuerier, change)
 
 	if err != nil {		
 		return "Usuario no encontrado", 400
@@ -99,21 +96,20 @@ func Auth(jsonStr []byte) (string, int) {
 	logValues := LogValues{}  // Llama al modelo de usuario para almacenar los valores recibidos en JSON
     json.Unmarshal(jsonStr, &logValues)
 
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
+	if Connect() == false { // Conecta a la base de datos
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    if IsMaliciousIp(logValues.Ip, session) {
+    if IsMaliciousIp(logValues.Ip) {
     	return "La IP desde donde se intenta acceder se encuentra bloqueada", 401
     }
 
-    con := session.DB(NameDB).C(CollectionDB)
+    col = session.DB(NameDB).C("usuarios")
 
     result := models.Usuario{}
     pass := EncryptToString(logValues.Pass)
-    err = con.Find(bson.M{"nickname": logValues.Nickname, "pass": pass}).One(&result) // Busca un nombre en la colección y lo almacena en result
+    err = col.Find(bson.M{"nickname": logValues.Nickname, "pass": pass}).One(&result) // Busca un nombre en la colección y lo almacena en result
 
 	if err != nil {
 		return "Usuario no encontrado",400
@@ -130,16 +126,15 @@ func MailRecover(mail string) (string, int){
 	/* Función que recibe el correo al que se enviará el link de recuperación de pass por medio de parámetro URL 
 		Verifica que el correo exista y devuelve un mensaje en caso de que el correo haya sido enviado o de error en caso contrario */
 
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
+	if Connect() == false { // Conecta a la base de datos
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    con := session.DB(NameDB).C(CollectionDB)
+    col = session.DB(NameDB).C("usuarios")
 
     result := models.Usuario{}
-    err = con.Find(bson.M{"mail": mail}).One(&result) // Busca un nombre en la colección y lo almacena en result
+    err = col.Find(bson.M{"mail": mail}).One(&result) // Busca un nombre en la colección y lo almacena en result
 
 	if err != nil {
 		return "Usuario no encontrado",400
@@ -151,12 +146,12 @@ func MailRecover(mail string) (string, int){
 
 }
 
-func UserExists(userBy, textUser string, session *mgo.Session) bool {
+func UserExists(userBy, textUser string) bool {
 
 	/* Función que verifica si existe algún valor en la base de datos recibe la opción a buscar (userBy) y el valor a buscar(textUser)
 		Retorna true en caso de encontrarlo o false cuando no se encuentra*/
 
-    con := session.DB(NameDB).C(CollectionDB)
+    col = session.DB(NameDB).C("usuarios")
 
     findBson := bson.M{userBy:textUser}
     if userBy == "_id" {
@@ -170,7 +165,7 @@ func UserExists(userBy, textUser string, session *mgo.Session) bool {
     }
     
     result := models.Usuario{}
-    err := con.Find(findBson).One(&result) // Busca un nombre en la colección y lo almacena en result
+    err := col.Find(findBson).One(&result) // Busca un nombre en la colección y lo almacena en result
 
     if err != nil{
     	return false
@@ -181,26 +176,25 @@ func UserExists(userBy, textUser string, session *mgo.Session) bool {
 
 func UserEdit(account_id, token string,jsonStr []byte) (string, int){
 
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
+	if Connect() == false { // Conecta a la base de datos
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-	if CheckToken(token, session) == false {
+	if CheckToken(token) == false {
 		return "token no válido", 401
-	} else if UserExists("_id", account_id, session) == false{
+	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 403		//Verifica que el account_id exista en la base de datos
 	}
 
 	editValues := &models.Usuario{}
 	json.Unmarshal(jsonStr, editValues)
 
-    con := session.DB(NameDB).C(CollectionDB)
+    col = session.DB(NameDB).C("usuarios")
 
     colQuerier := bson.M{"_id": bson.ObjectIdHex(account_id)}  // Busca el documento por ACCOUNT_ID
 	change := bson.M{"$set": bson.M{"firstname": editValues.Firstname, "lastname": editValues.Lastname, "age": editValues.Age, "country":editValues.Country,"state": editValues.State, "address": editValues.Address, "tel": editValues.Tel}}
-	err = con.Update(colQuerier, change)
+	err = col.Update(colQuerier, change)
 
 	if err != nil {		
 		return "Usuario no encontrado", 400
@@ -221,14 +215,13 @@ func AddIp(jsonStr []byte) (string, int) {
 
     json.Unmarshal(jsonStr, &applicant)
 
-	session, err := Connect() // Conecta a la base de datos
-	if err != nil {
+	if Connect() == false { // Conecta a la base de datos
 		return "No se ha conectado a la base de datos", 500
     }
     defer session.Close()
 
-    con := session.DB(NameDB).C("blacklist")
-	err = con.Insert(bson.M{"ip":applicant.Ip})
+    col = session.DB(NameDB).C("blacklist")
+	err = col.Insert(bson.M{"ip":applicant.Ip})
 
 	if err != nil {
 		return "No se ha insertado", 500
@@ -242,7 +235,7 @@ func AddIp(jsonStr []byte) (string, int) {
 
 }
 
-func IsMaliciousIp(ip string, session *mgo.Session) bool {
+func IsMaliciousIp(ip string) bool {
 
 	type Ip_blacklist struct {
 		nickname 	string   	`json:"id" bson:"_id,omitempty"`
@@ -251,9 +244,9 @@ func IsMaliciousIp(ip string, session *mgo.Session) bool {
 
 	result := Ip_blacklist{}
 
-	con := session.DB(NameDB).C("blacklist")
+	col = session.DB(NameDB).C("blacklist")
 
-	err := con.Find(bson.M{"ip": ip}).One(&result)
+	err = col.Find(bson.M{"ip": ip}).One(&result)
 
 	if err != nil{
     	return false

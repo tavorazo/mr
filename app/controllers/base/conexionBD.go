@@ -7,18 +7,20 @@ import (
 var (
 	HostDB 			string = "mongodb://mr-tooth:12qwaszx@ds044699.mlab.com:44699/mr"
 	NameDB 			string = "mr"
-	CollectionDB 	string = "usuarios"
+	err 			error
+	session 		*mgo.Session
+	col 			*mgo.Collection
 )
 
-func Connect() (*mgo.Session, error) {
+func Connect() bool {
 
-	session, err := mgo.Dial(HostDB)
+	session, err = mgo.Dial(HostDB)
 	if err != nil {
-		return session, err
+		return false
     }
     // defer session.Close()
 
     session.SetMode(mgo.Monotonic, true)
 
-    return session, err
+    return true
 }

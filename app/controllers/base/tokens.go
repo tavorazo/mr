@@ -1,7 +1,6 @@
 package base
 
 import(
-	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
 	"crypto/md5"
@@ -31,7 +30,7 @@ func CreateToken(iss string, name string) string{
 	return token
 }
 
-func CheckToken(token string, session *mgo.Session) bool {
+func CheckToken(token string) bool {
 
 	/* Función que verifica la expliración del token y retorna true si es válido o false en caso contrario */
 
@@ -55,10 +54,10 @@ func CheckToken(token string, session *mgo.Session) bool {
 	pl := Payload{}
 	json.Unmarshal(payloadJson, &pl)
 
-    con := session.DB(NameDB).C(CollectionDB)
+    col = session.DB(NameDB).C("usuarios")
 
     result := models.Usuario{}
-    err = con.Find(bson.M{"_id":bson.ObjectIdHex(pl.Iss)}).One(&result)
+    err = col.Find(bson.M{"_id":bson.ObjectIdHex(pl.Iss)}).One(&result)
 
     if err != nil {  //Si no se encuentra el usuario en la base de datos retorna falso
     	return false
