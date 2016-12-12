@@ -189,3 +189,38 @@ func UpdatePatient(account_id, reference_id string, patient_id, token string, js
 	return "Datos del paciente actualizados", 200
 
 }
+
+func AddPicture(account_id, reference_id string, patient_id, token string, pictureType string) (string, int, interface{}){
+
+	/* Función que actualiza un paciente para agregar una imagen al array de fotos intra o radiografías */
+
+	data := make(map[string]interface{})
+
+	if Connect() == false { // Conecta a la base de datos
+		return "No se ha conectado a la base de datos", 500, data
+    }
+    defer session.Close()
+
+	if CheckToken(token) == false {
+		return "token no válido", 401, data   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 403, data		//Verifica que el account_id exista en la base de datos
+	}
+
+	col = session.DB(NameDB).C("pacientes")
+
+	fileName := "/data/paciente/"+ pictureType +"/" + patient_id+ "_"+ CreateUniqueId() +".jpg"
+
+	colQuerier := bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id), "patients._id": patient_id }  // Busca el documento por id de referencia (doctor/clinica)
+	change := bson.M{"$push": bson.M{"patients.$."+pictureType: fileName} } // Inserta en el array de productos
+	err = col.Update(colQuerier, change)
+
+	if err != nil {		
+		return "Paciente no encontrado", 400, data
+	}
+
+	data["type"] = pictureType
+	data["name"] = fileName
+
+	return "Imagen agregada", 201, data
+}

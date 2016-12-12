@@ -165,6 +165,22 @@ func (c Beta) EditPatient(account_id, reference_id string, patient_id string) re
 
 }
 
+func (c Beta) AddIntraPicture(account_id, reference_id string, patient_id string) revel.Result {
+
+	result,status,dataArray = base.AddPicture(account_id, reference_id, patient_id, c.Request.Header.Get("token"),"intra")
+	c.Response.Status 		= status
+	return c.RenderJson(ShowArrayResponse("picture"))
+
+}
+
+func (c Beta) AddRadiography(account_id, reference_id string, patient_id string) revel.Result {
+
+	result,status,dataArray = base.AddPicture(account_id, reference_id, patient_id, c.Request.Header.Get("token"),"radiography")
+	c.Response.Status 		= status
+	return c.RenderJson(ShowArrayResponse("picture"))
+
+}
+
 // Funciones comunes de respuesta
 func OkResponse() interface{} {
 

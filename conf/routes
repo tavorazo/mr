@@ -32,9 +32,11 @@ PUT 	/beta/:account_id/caterers/edit_caterer		Beta.EditCaterer
 
 # Pacientes
 
-GET		/beta/:account_id/patients/:reference_id					Beta.PatientsAll
-POST	/beta/:account_id/patients/add/:reference_id				Beta.AddPatient
-PUT 	/beta/:account_id/patients/:reference_id/edit/:patient_id 	Beta.EditPatient
+GET		/beta/:account_id/patients/:reference_id								Beta.PatientsAll
+POST	/beta/:account_id/patients/add/:reference_id							Beta.AddPatient
+PUT 	/beta/:account_id/patients/:reference_id/edit/:patient_id 				Beta.EditPatient
+POST 	/beta/:account_id/patients/:reference_id/add_intra/:patient_id 			Beta.AddIntraPicture
+POST 	/beta/:account_id/patients/:reference_id/add_radiography/:patient_id 	Beta.AddRadiography
 
 # Ignore favicon requests
 GET     /favicon.ico                            404
