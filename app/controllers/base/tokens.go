@@ -9,6 +9,7 @@ import(
 	"encoding/base64"
 	"strconv"
 	"time"
+	"math/rand"
 	"strings"
 	"mr/app/models"
 )
@@ -79,4 +80,7 @@ func EncryptToStringSha256(text string) string{
 	hasher := sha256.New()
 	hasher.Write([]byte(text))
 	return hex.EncodeToString(hasher.Sum(nil))
+}
+func CreateUniqueId() string {
+	return EncryptToString( strconv.Itoa( int(time.Now().Unix()) * rand.Int() ) )
 }
