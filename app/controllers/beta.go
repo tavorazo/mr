@@ -181,6 +181,13 @@ func (c Beta) AddRadiography(account_id, reference_id string, patient_id string)
 
 }
 
+func (c Beta) AddPrescription(account_id, reference_id string, patient_id string) revel.Result {
+	body, _ 			= ioutil.ReadAll(c.Request.Body)  //Recibe de POST la cadena correspondiente a un JSON
+	result,status 		= base.AddPrescription(account_id, reference_id, patient_id, c.Request.Header.Get("token"), body)
+	c.Response.Status 	= status
+	return c.RenderJson(OkResponse())
+}
+
 // Funciones comunes de respuesta
 func OkResponse() interface{} {
 

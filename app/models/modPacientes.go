@@ -22,4 +22,11 @@ type PatientsExt struct{
 	Reference_id	string			`json:"reference_id"`  // A qué doctor/clinica está asignado el paciente
 	Account_id		bson.ObjectId	`json:"account_id"`
 	Patients 		[]Patient		`json:"patients"`
+}
+
+type Prescription struct{
+	Patient_id 		string 			`json:"patient_id"`
+	Description 	string 			`json:"description"`
+	Comments 		string 			`json:"comments"`
+	Date 			string 			`json:"date"`
 } 

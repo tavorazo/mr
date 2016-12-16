@@ -4,6 +4,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"encoding/json"
 	"strconv"
+	"time"
 
 	"mr/app/models"
 )
@@ -223,4 +224,38 @@ func AddPicture(account_id, reference_id string, patient_id, token string, pictu
 	data["name"] = fileName
 
 	return "Imagen agregada", 201, data
+}
+
+func AddPrescription(account_id, reference_id string, patient_id, token string, jsonStr []byte) (string, int) {
+
+	if Connect() == false { // Conecta a la base de datos
+		return "No se ha conectado a la base de datos", 500
+    }
+    defer session.Close()
+
+	if CheckToken(token) == false {
+		return "token no válido", 401  // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false{
+		return "Usuario no encontrado", 404	//Verifica que el account_id exista en la base de datos
+	} else if ReferenceExists(reference_id, account_id) == false {
+		return "ID de clínica/doctor no existe",404
+	}
+
+	col = session.DB(NameDB).C("pacientes")
+
+	prescriptionVals := &models.Prescription{}
+	json.Unmarshal(jsonStr, prescriptionVals)
+
+	prescriptionVals.Patient_id = patient_id
+	prescriptionVals.Date = time.Now().Format("02/01/2006")
+
+	colQuerier := bson.M{"reference_id": reference_id}  // Busca el documento por id de referencia (doctor/clinica)
+	change := bson.M{"$push": bson.M{"prescriptions": prescriptionVals} } // Inserta en el array de productos
+	err = col.Update(colQuerier, change)
+
+	if err != nil {		
+		return "No se ha agregado la receta del paciente", 500
+	}
+
+	return "Receta agregada al paciente", 201
 }
