@@ -63,8 +63,6 @@ func ReferenceExists(reference_id, account_id string) bool {
 
 	/* Función que verifica si existe un array de pacientes para el id de referencia indicado */
 
-	col = session.DB(NameDB).C("pacientes")
-
     result := models.PatientsExt{}
     err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).One(&result)
 
@@ -127,6 +125,11 @@ func GetPatients(all bool, account_id, reference_id string, token, patient_id st
 
     col = session.DB(NameDB).C("pacientes")
 
+    if ReferenceExists(reference_id, account_id) == false {
+		return "ID de clínica/doctor no existe", 404, data
+	}
+
+
     result := models.PatientsExt{}
 
     if all == false {  // Si está desactivada la opción de todos los pacientes buscará uno en específico de acuerdo al id de referencia indicado
@@ -179,6 +182,10 @@ func UpdatePatient(account_id, reference_id string, patient_id, token string, js
 
     col = session.DB(NameDB).C("pacientes")
 
+    if ReferenceExists(reference_id, account_id) == false {
+		return "ID de clínica/doctor no existe",404
+	}
+
     colQuerier := bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id), "patients._id": patient_id }  // Busca el documento
 	change := bson.M{"$set": bson.M{"patients.$": patientVals} } // Inserta en el array de productos
 	err = col.Update(colQuerier, change)
@@ -210,6 +217,10 @@ func AddPicture(account_id, reference_id string, patient_id, token string, pictu
 
 	col = session.DB(NameDB).C("pacientes")
 
+	if ReferenceExists(reference_id, account_id) == false {
+		return "ID de clínica/doctor no existe",404,data
+	}
+
 	fileName := "/data/paciente/"+ pictureType +"/" + patient_id+ "_"+ CreateUniqueId() +".jpg"
 
 	colQuerier := bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id), "patients._id": patient_id }  // Busca el documento por id de referencia (doctor/clinica)
@@ -228,6 +239,8 @@ func AddPicture(account_id, reference_id string, patient_id, token string, pictu
 
 func AddPrescription(account_id, reference_id string, patient_id, token string, jsonStr []byte) (string, int) {
 
+	/* Función para agregar a la base de datos una receta */
+
 	if Connect() == false { // Conecta a la base de datos
 		return "No se ha conectado a la base de datos", 500
     }
@@ -237,11 +250,13 @@ func AddPrescription(account_id, reference_id string, patient_id, token string, 
 		return "token no válido", 401  // Verifica que sea un token válido
 	} else if UserExists("_id", account_id) == false{
 		return "Usuario no encontrado", 404	//Verifica que el account_id exista en la base de datos
-	} else if ReferenceExists(reference_id, account_id) == false {
-		return "ID de clínica/doctor no existe",404
 	}
 
 	col = session.DB(NameDB).C("pacientes")
+
+	if ReferenceExists(reference_id, account_id) == false {
+		return "ID de clínica/doctor no existe",404
+	}
 
 	prescriptionVals := &models.Prescription{}
 	json.Unmarshal(jsonStr, prescriptionVals)
