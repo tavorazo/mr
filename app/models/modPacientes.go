@@ -3,7 +3,7 @@ package models
 import "gopkg.in/mgo.v2/bson"
 
 type Patient struct{
-	Id 		 		string 	    	`json:"id" bson:"_id,omitempty"`
+	Id 		 		string 	    	`json:"_id" bson:"_id,omitempty"`
 	Name 			string			`json:"name"`
 	Address			string			`json:"address"`
 	Telephone		string			`json:"telephone"`

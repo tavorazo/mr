@@ -32,7 +32,8 @@ PUT 	/beta/:account_id/caterers/edit_caterer		Beta.EditCaterer
 
 # Pacientes
 
-GET		/beta/:account_id/patients/:reference_id								Beta.PatientsAll
+GET		/beta/:account_id/patients/:reference_id								Beta.GetPatients
+GET 	/beta/:account_id/patients/:reference_id/:patient_id 					Beta.GetPatients
 POST	/beta/:account_id/patients/add/:reference_id							Beta.AddPatient
 PUT 	/beta/:account_id/patients/:reference_id/edit/:patient_id 				Beta.EditPatient
 POST 	/beta/:account_id/patients/:reference_id/add_intra/:patient_id 			Beta.AddIntraPicture

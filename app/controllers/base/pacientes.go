@@ -103,7 +103,7 @@ func GetLastPatientId(reference_id, account_id string) int {
 
 }
 
-func GetPatients(all bool, account_id, reference_id string, token, patient_id string) (string, int, interface{}) {
+func GetPatients(account_id, reference_id string, token, patient_id string) (string, int, interface{}) {
 
 	/* 	Función que busca en la base de datos uno o más pacientes
 		"all" es un valor booleano que indica si se quieren todos los pacientes o uno en específico
@@ -132,8 +132,8 @@ func GetPatients(all bool, account_id, reference_id string, token, patient_id st
 
     result := models.PatientsExt{}
 
-    if all == false {  // Si está desactivada la opción de todos los pacientes buscará uno en específico de acuerdo al id de referencia indicado
-    	err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"products": bson.M{"$elemMatch": bson.M{"id":patient_id} }}).One(&result)
+    if patient_id != "" {  // Si está desactivada la opción de todos los pacientes buscará uno en específico de acuerdo al id de referencia indicado
+    	err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"patients": bson.M{"$elemMatch": bson.M{"_id":patient_id} }}).One(&result)
     } else{
     	err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).One(&result)
     }
@@ -146,10 +146,10 @@ func GetPatients(all bool, account_id, reference_id string, token, patient_id st
 	patientsFound := len(result.Patients) // Cantidad de pacientes encontrados
 
 	if patientsFound == 0 {
-		if all == true {
+		if patient_id == "" {
 			return "No se encontraron pacientes", 206, data["paciente"]  // Si realiza una búsqueda de todos los pacientes retorna exito pero con el array vacío
 		} else {
-			return "Paciente no encontrado", 400, data["paciente"]				// Si es una búsqueda de un solo paciente retorna error al no ser encontrado
+			return "Paciente no encontrado "+patient_id, 400, data["paciente"]				// Si es una búsqueda de un solo paciente retorna error al no ser encontrado
 		}
 	} else if patientsFound == 1 {
 		return "Paciente encontrado", 200, data["paciente"]			// Si hay un solo paciente

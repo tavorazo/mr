@@ -149,9 +149,9 @@ func (c Beta) AddPatient(account_id, reference_id string) revel.Result {
 	return c.RenderJson(OkResponse())
 }
 
-func (c Beta) PatientsAll(account_id, reference_id string) revel.Result {
+func (c Beta) GetPatients(account_id, reference_id string, patient_id string) revel.Result {
 
-	result, status, dataArray 	= base.GetPatients(true, account_id, reference_id, c.Request.Header.Get("token"), "") // True para activar la busqueda de todos los productos
+	result, status, dataArray 	= base.GetPatients(account_id, reference_id, c.Request.Header.Get("token"), patient_id) // True para activar la busqueda de todos los productos
 	c.Response.Status 			= status
 	return c.RenderJson(ShowArrayResponse("patients"))
 }
