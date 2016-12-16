@@ -153,7 +153,7 @@ func (c Beta) GetPatients(account_id, reference_id string, patient_id string) re
 
 	result, status, dataArray 	= base.GetPatients(account_id, reference_id, c.Request.Header.Get("token"), patient_id) // True para activar la busqueda de todos los productos
 	c.Response.Status 			= status
-	return c.RenderJson(ShowArrayResponse("patients"))
+	return c.RenderJson(ShowArrayResponse("data"))
 }
 
 func (c Beta) EditPatient(account_id, reference_id string, patient_id string) revel.Result {

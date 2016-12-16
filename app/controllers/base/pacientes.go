@@ -129,32 +129,42 @@ func GetPatients(account_id, reference_id string, token, patient_id string) (str
 		return "ID de clínica/doctor no existe", 404, data
 	}
 
-
     result := models.PatientsExt{}
+
+    type Pictures struct{
+    	Intra 			[]string `json:"intra"`
+    	Radiography 	[]string `json:"radiography"` 
+    }
+    type PatientPictures struct {
+    	Patients 		[]Pictures		`json:"patients"`
+    }
+    pictureResult := PatientPictures{}
 
     if patient_id != "" {  // Si está desactivada la opción de todos los pacientes buscará uno en específico de acuerdo al id de referencia indicado
     	err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"patients": bson.M{"$elemMatch": bson.M{"_id":patient_id} }}).One(&result)
+    	err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).Select(bson.M{"patients": bson.M{"$elemMatch": bson.M{"_id":patient_id} },"patients.intra":1,"patients.radiography":1,"_id":0}).One(&pictureResult)
+    	data["patient_data"] = result.Patients[0]
+    	data["patient_images"] = pictureResult.Patients[0]
     } else{
     	err = col.Find(bson.M{"reference_id": reference_id, "account_id": bson.ObjectIdHex(account_id)}).One(&result)
+    	data["patients"] = result.Patients
     }
     
     if err != nil  {
-    	return "No se encontraron pacientes", 206, data
+    	return "No se encontraron pacientes", 404, data
     } 	
 
-	data["paciente"] = result.Patients
 	patientsFound := len(result.Patients) // Cantidad de pacientes encontrados
-
 	if patientsFound == 0 {
 		if patient_id == "" {
-			return "No se encontraron pacientes", 206, data["paciente"]  // Si realiza una búsqueda de todos los pacientes retorna exito pero con el array vacío
+			return "No se encontraron pacientes", 404, data  // Si realiza una búsqueda de todos los pacientes retorna exito pero con el array vacío
 		} else {
-			return "Paciente no encontrado "+patient_id, 400, data["paciente"]				// Si es una búsqueda de un solo paciente retorna error al no ser encontrado
+			return "Paciente no encontrado", 404, data				// Si es una búsqueda de un solo paciente retorna error al no ser encontrado
 		}
 	} else if patientsFound == 1 {
-		return "Paciente encontrado", 200, data["paciente"]			// Si hay un solo paciente
+		return "Paciente encontrado", 200, data		// Si hay un solo paciente
 	} else {
-		return "Pacientes encontrados", 200, data["paciente"]		// Si hay dos o más pacientes
+		return "Pacientes encontrados", 200, data["patients"]		// Si hay dos o más pacientes
 	}
     
 }
@@ -191,7 +201,7 @@ func UpdatePatient(account_id, reference_id string, patient_id, token string, js
 	err = col.Update(colQuerier, change)
 
 	if err != nil {		
-		return "Paciente no encontrado", 400
+		return "Paciente no encontrado", 404
 	}
 
 	return "Datos del paciente actualizados", 200
