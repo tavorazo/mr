@@ -91,3 +91,44 @@ func UpdateCaterer(account_id, token string, jsonStr []byte) (string, int){
 
 }
 
+func GetCaterers(account_id, token string, caterer_name string) (string, int, interface{}) {
+
+	/* Buscar proveedores en la base de datos, se recibe el nombre del provedor, si está vacío se retornarán todos los proveedores*/
+
+	if Connect() == false { // Conecta a la base de datos
+		return "No se ha conectado a la base de datos", 500, nil
+    }
+    defer session.Close()
+
+	if CheckToken(token) == false {
+		return "token no válido", 401, nil   // Verifica que sea un token válido
+	} else if UserExists("_id", account_id) == false {
+		return "Usuario no encontrado", 404, nil		//Verifica que el account_id exista en la base de datos
+	}
+
+	col = session.DB(NameDB).C("proveedores")
+	var results []models.Proveedor
+	
+	if caterer_name != "" {
+		err = col.Find(bson.M{"name": bson.M{"$regex":caterer_name } }).All(&results)
+		if err != nil {
+			return "Proveedor no encontrado", 404, nil
+		}
+
+	} else {
+		
+		err = col.Find(bson.M{}).All(&results)
+		if err != nil {
+			return "No hay proveedores", 404, nil
+		}
+		
+	}
+
+	if len(results) == 1 {
+		return "Proveedor encontrado", 200, results[0]
+	} else {
+		return "Proveedores encontrados", 200, results
+	}
+	
+}
+

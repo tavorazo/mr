@@ -110,14 +110,14 @@ func (c Beta) ProductsAll(account_id, reference_id string) revel.Result {
 
 	result, status, dataArray 	= base.GetProducts(true, account_id, reference_id, c.Request.Header.Get("token"), "") // True para activar la busqueda de todos los productos
 	c.Response.Status 			= status
-	return c.RenderJson(ShowArrayResponse("products"))
+	return c.RenderJson(ShowArrayResponse())
 }
 
 func (c Beta) ProductsOne(account_id, reference_id string, product_id string) revel.Result {
 
 	result, status, dataArray 	= base.GetProducts(false, account_id, reference_id, c.Request.Header.Get("token"), product_id) // False para desactivar la busqueda de todos los productos
 	c.Response.Status 			= status
-	return c.RenderJson(ShowArrayResponse("products"))
+	return c.RenderJson(ShowArrayResponse())
 }
 
 // Proveedores
@@ -139,6 +139,14 @@ func (c Beta) EditCaterer(account_id string) revel.Result {
 
 }
 
+func (c Beta) GetCaterers(account_id, name string) revel.Result {
+
+	result,status,dataArray 		= base.GetCaterers(account_id, c.Request.Header.Get("token"), name)
+	c.Response.Status 				= status
+	return c.RenderJson(ShowArrayResponse())
+
+}
+
 // PACIENTES
 
 func (c Beta) AddPatient(account_id, reference_id string) revel.Result {
@@ -153,7 +161,7 @@ func (c Beta) GetPatients(account_id, reference_id string, patient_id string) re
 
 	result, status, dataArray 	= base.GetPatients(account_id, reference_id, c.Request.Header.Get("token"), patient_id) // True para activar la busqueda de todos los productos
 	c.Response.Status 			= status
-	return c.RenderJson(ShowArrayResponse("data"))
+	return c.RenderJson(ShowArrayResponse())
 }
 
 func (c Beta) EditPatient(account_id, reference_id string, patient_id string) revel.Result {
@@ -169,7 +177,7 @@ func (c Beta) AddIntraPicture(account_id, reference_id string, patient_id string
 
 	result,status,dataArray = base.AddPicture(account_id, reference_id, patient_id, c.Request.Header.Get("token"),"intra")
 	c.Response.Status 		= status
-	return c.RenderJson(ShowArrayResponse("picture"))
+	return c.RenderJson(ShowArrayResponse())
 
 }
 
@@ -177,7 +185,7 @@ func (c Beta) AddRadiography(account_id, reference_id string, patient_id string)
 
 	result,status,dataArray = base.AddPicture(account_id, reference_id, patient_id, c.Request.Header.Get("token"),"radiography")
 	c.Response.Status 		= status
-	return c.RenderJson(ShowArrayResponse("picture"))
+	return c.RenderJson(ShowArrayResponse())
 
 }
 
@@ -202,14 +210,14 @@ func OkResponse() interface{} {
 	return data
 
 }
-func ShowArrayResponse(ArrayName string) interface{} {
+func ShowArrayResponse() interface{} {
 
 	data := make(map[string]interface{})
 	if(status >= 400){
 		data["error"] 	= 	result
 	} else{
 		data["OK"] 		= 	result
-		data[ArrayName] = 	dataArray
+		data["data"] = 	dataArray
 	}
 	data["status"] = status
 

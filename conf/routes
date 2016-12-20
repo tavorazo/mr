@@ -27,6 +27,8 @@ DELETE 	/beta/:account_id/almacen/:reference_id/:product_id/delete			Beta.Delete
 
 # Proveedores
 
+GET 	/beta/:account_id/caterers 					Beta.GetCaterers
+GET 	/beta/:account_id/caterers/:name 			Beta.GetCaterers
 POST 	/beta/:account_id/caterers/add_caterer 		Beta.AddCaterer
 PUT 	/beta/:account_id/caterers/edit_caterer		Beta.EditCaterer
 
